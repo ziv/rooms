@@ -84,41 +84,51 @@ supabase start          # Postgres על 54322, Auth על 54321, Mailpit על 543
 **מטרה:** משתמש מתחבר, משלים פרופיל, מבקש חברות; המנהל רואה אותו. ללא יומן.
 
 **5.0.1 שלד פרויקט**
-- [ ] יצירת פרויקט לפי סעיף 3; מבנה תיקיות לפי `design.md` §4; ESLint + Prettier; `tsconfig` strict.
-- [ ] `src/lib/env.ts` עם zod.
-- [ ] Sentry (`@sentry/nextjs` wizard), `x-request-id` ב-middleware.
-- [ ] `next-intl`: routing `[locale]`, `messages/he.json` ו-`en.json`, `dir` על `<html>`. עמוד בדיקה בשתי השפות.
-- [ ] shadcn: Button, Dialog, Select, Input, Textarea, Tabs, Table, Toast, Form, Calendar (date picker). בדיקת RTL ויזואלית.
+- [x] יצירת פרויקט לפי סעיף 3; מבנה תיקיות לפי `design.md` §4; ESLint + Prettier; `tsconfig` strict.
+- [x] `src/lib/env.ts` עם zod.
+- [x] Sentry (`@sentry/nextjs` wizard), `x-request-id` ב-middleware.
+- [x] `next-intl`: routing `[locale]`, `messages/he.json` ו-`en.json`, `dir` על `<html>`. עמוד בדיקה בשתי השפות.
+- [x] shadcn: Button, Dialog, Select, Input, Textarea, Tabs, Table, Toast, Form, Calendar (date picker). בדיקת RTL ויזואלית.
 
 **5.0.2 מסד נתונים**
-- [ ] `src/lib/db/schema.ts` ב-Drizzle לפי `design.md` §6.1.
-- [ ] Migration ראשון: `drizzle-kit generate` + SQL ידני ל-`btree_gist`, ל-exclusion constraint, לאינדקס ה-super-admin היחיד ול-RLS.
-- [ ] `src/lib/db/index.ts`: client עם `postgres(DATABASE_URL, { prepare: false })`, `withTx()`, `lockRoom/lockRooms`.
-- [ ] `scripts/seed.ts`: שני מתחמים, 3–4 חדרים לכל אחד, שעות פעילות א׳–ה׳ 08:00–21:00, ו׳ 08:00–13:00 (ניתן לשינוי), משתמשים לבדיקה.
-- [ ] `docs/db.md` קצר: איך מריצים migrations מקומית ובייצור.
+- [x] `src/lib/db/schema.ts` ב-Drizzle לפי `design.md` §6.1.
+- [x] Migration ראשון: `drizzle-kit generate` + SQL ידני ל-`btree_gist`, ל-exclusion constraint, לאינדקס ה-super-admin היחיד ול-RLS.
+- [x] `src/lib/db/index.ts`: client עם `postgres(DATABASE_URL, { prepare: false })`, `withTx()`, `lockRoom/lockRooms`.
+- [x] `scripts/seed.ts`: שני מתחמים, 3–4 חדרים לכל אחד, שעות פעילות א׳–ה׳ 08:00–21:00, ו׳ 08:00–13:00 (ניתן לשינוי), משתמשים לבדיקה.
+- [x] `docs/db.md` קצר: איך מריצים migrations מקומית ובייצור.
 
 **5.0.3 הזדהות**
-- [ ] `src/lib/supabase/{server,browser,middleware}.ts` לפי `@supabase/ssr`.
-- [ ] `middleware.ts`: רענון סשן, הפניית לא-מזוהים ל-`/[locale]/login`, שמירת `x-request-id`.
-- [ ] `/login`: כפתור Google + טופס דוא״ל → OTP (שני שלבים). `/api/auth/callback`.
-- [ ] `modules/auth`: `Actor`, `getActor`, `requireUser`, `requireAdmin`, `requireApprovedMember`.
-- [ ] `modules/users.ensure` עם הענקת `SUPER_ADMIN` לפי `SUPER_ADMIN_EMAIL` + ביקורת `ROLE_GRANTED`.
-- [ ] `modules/audit.audit()`.
-- [ ] `/privacy` ו-`/terms` סטטיים (טקסט ראשוני; הבעלים מאשר).
+- [x] `src/lib/supabase/{server,browser,middleware}.ts` לפי `@supabase/ssr`.
+- [x] `middleware.ts`: רענון סשן, הפניית לא-מזוהים ל-`/[locale]/login`, שמירת `x-request-id`.
+- [x] `/login`: כפתור Google + טופס דוא״ל → OTP (שני שלבים). `/api/auth/callback`.
+- [x] `modules/auth`: `Actor`, `getActor`, `requireUser`, `requireAdmin`, `requireApprovedMember`.
+- [x] `modules/users.ensure` עם הענקת `SUPER_ADMIN` לפי `SUPER_ADMIN_EMAIL` + ביקורת `ROLE_GRANTED`.
+- [x] `modules/audit.audit()`.
+- [x] `/privacy` ו-`/terms` סטטיים (טקסט ראשוני; הבעלים מאשר).
 
 **5.0.4 פרופיל, מתחמים, חברויות**
-- [ ] `/onboarding`: שם + שפה (`updateProfile`); בחירת מתחמים ובקשה (`requestMembership`); עמוד `pending` עם מצב לכל מתחם.
-- [ ] `modules/memberships`: `request`, `decide`, `forUser`, `listForSite`; ביקורת `MEMBERSHIP_DECIDED`.
-- [ ] `/admin/members`: טבלה, מסנן מצב, פעולות אישור/דחייה/השעיה/החזרה.
-- [ ] `/admin/rooms`: CRUD + סדר + השבתה (בלי בדיקת הזמנות עתידיות עדיין; מתווסף ב-M1).
-- [ ] `/admin/settings`: עריכת שני המתחמים (שם, כתובת, חלון, cutoff).
-- [ ] Shell: סרגל עליון, בורר מתחם, ניווט לפי תפקיד.
-- [ ] `runAction` + `ActionResult` + מיפוי `AppError`.
+- [x] `/onboarding`: שם + שפה (`updateProfile`); בחירת מתחמים ובקשה (`requestMembership`); עמוד `pending` עם מצב לכל מתחם.
+- [x] `modules/memberships`: `request`, `decide`, `forUser`, `listForSite`; ביקורת `MEMBERSHIP_DECIDED`.
+- [x] `/admin/members`: טבלה, מסנן מצב, פעולות אישור/דחייה/השעיה/החזרה.
+- [x] `/admin/rooms`: CRUD + סדר + השבתה (בלי בדיקת הזמנות עתידיות עדיין; מתווסף ב-M1).
+- [x] `/admin/settings`: עריכת שני המתחמים (שם, כתובת, חלון, cutoff).
+- [x] Shell: סרגל עליון, בורר מתחם, ניווט לפי תפקיד.
+- [x] `runAction` + `ActionResult` + מיפוי `AppError`.
 
 **5.0.5 בדיקות M0**
-- [ ] Vitest integration harness: DB נקי לכל ריצה (`supabase db reset` או schema per run), `makeActor()` helper.
-- [ ] בדיקות: `ensure` מעניק admin פעם אחת בלבד; `decide` רק למנהל; מטפל מושעה אינו `APPROVED`.
-- [ ] GitHub Actions: lint, unit, integration (עם `supabase start` ב-CI או Postgres service + migrations).
+- [x] Vitest integration harness: DB נקי לכל ריצה (`supabase db reset` או schema per run), `makeActor()` helper.
+- [x] בדיקות: `ensure` מעניק admin פעם אחת בלבד; `decide` רק למנהל; מטפל מושעה אינו `APPROVED`.
+- [x] GitHub Actions: lint, unit, integration (עם `supabase start` ב-CI או Postgres service + migrations).
+
+**סטטוס (3.9.2026): הושלם מקומית.** הערות מימוש:
+- Next.js 16.3: `middleware.ts` נקרא `proxy.ts`; `params`/`searchParams` הם Promise; Turbopack ברירת מחדל.
+- shadcn סגנון `base-nova` (Base UI, לא Radix): אין `asChild`, משתמשים ב-`render`; ל-`Select` מעבירים `items` כדי שיוצג label. `rtl: true` ב-`components.json`.
+- Supabase מקומי על פורטים 553xx (פרויקט מקומי אחר תופס את 543xx). תבנית OTP ב-`supabase/templates/otp.html`; **בייצור יש להגדיר בדשבורד תבניות Magic Link ו-Confirm signup עם `{{ .Token }}`**, אחרת הקוד לא מגיע.
+- בדיקות אינטגרציה רצות מול DB נפרד `rooms_test` (נוצר ידנית: `create database rooms_test`; migrations דרך `tests/global-setup.ts`).
+- `ensureUser` מקדם גם משתמש קיים ל-SUPER_ADMIN אם הדוא״ל הוגדר אחרי ההתחברות הראשונה.
+- Drizzle עוטף שגיאות Postgres; קוד SQLSTATE נקרא דרך `pgErrorCode()` ב-`src/lib/db/errors.ts`.
+- סקריפט עשן בדפדפן: `scripts/smoke-m0.mjs` (Playwright) מכסה מנהל + מטפל.
+- טרם בוצע (דורש חשבונות): Google OAuth, פרויקט Supabase בענן, Vercel, Sentry DSN.
 
 **תוצר M0:** התחברות ב-Google ובדוא״ל, onboarding, אישור מטפל בידי מנהל, ניהול חדרים והגדרות, ביקורת בסיסית. פריסה ל-Vercel Preview מול `rooms-dev`.
 

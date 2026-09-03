@@ -1,0 +1,158 @@
+{
+  "app": {
+    "name": "Room Scheduler",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "actions": "Actions",
+    "yes": "Yes",
+    "no": "No",
+    "saved": "Saved",
+    "requiredField": "Required"
+  },
+  "nav": {
+    "calendar": "Calendar",
+    "myBookings": "My bookings",
+    "profile": "Profile",
+    "admin": "Admin",
+    "dashboard": "Dashboard",
+    "members": "Therapists",
+    "rooms": "Rooms",
+    "hours": "Opening hours",
+    "closures": "Closures",
+    "series": "Series",
+    "reports": "Reports",
+    "settings": "Settings",
+    "audit": "Audit log",
+    "signOut": "Sign out",
+    "site": "Site",
+    "language": "Language"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Therapy room scheduler. Access is for approved therapists only.",
+    "google": "Continue with Google",
+    "or": "or",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "name@example.com",
+    "sendCode": "Send sign-in code",
+    "codeSentTo": "We sent a 6-digit code to {email}",
+    "codeLabel": "Sign-in code",
+    "verify": "Sign in",
+    "changeEmail": "Use another address",
+    "invalidEmail": "Invalid email address",
+    "invalidCode": "The code is wrong or has expired",
+    "error": "Sign-in failed. Please try again.",
+    "legal": "By signing in you accept the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>."
+  },
+  "onboarding": {
+    "profileTitle": "Welcome",
+    "profileSubtitle": "A few details before we start",
+    "fullName": "Full name",
+    "language": "Preferred language",
+    "continue": "Continue",
+    "sitesTitle": "Choose a site",
+    "sitesSubtitle": "Request to join one or more sites. The site manager will approve your request.",
+    "request": "Request to join",
+    "requested": "Request sent",
+    "pendingTitle": "Waiting for approval",
+    "pendingSubtitle": "Your request was sent to the site manager. You will get an email once approved.",
+    "status": {
+      "PENDING": "Pending approval",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "SUSPENDED": "Suspended",
+      "NONE": "Not requested"
+    },
+    "goToCalendar": "Go to calendar"
+  },
+  "profile": {
+    "title": "Profile",
+    "email": "Email",
+    "fullName": "Full name",
+    "language": "Language",
+    "memberships": "Site memberships",
+    "requestMore": "Request to join another site"
+  },
+  "locale": { "he": "עברית", "en": "English" },
+  "calendar": {
+    "title": "Calendar",
+    "placeholder": "The calendar is built in the next milestone (M1)."
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Dashboard",
+      "pending": "Pending requests",
+      "noPending": "No pending requests",
+      "sites": "Sites"
+    },
+    "members": {
+      "title": "Therapists",
+      "filterAll": "All",
+      "name": "Name",
+      "email": "Email",
+      "site": "Site",
+      "status": "Status",
+      "requestedAt": "Requested",
+      "approve": "Approve",
+      "reject": "Reject",
+      "suspend": "Suspend",
+      "reinstate": "Reinstate",
+      "empty": "No therapists to show",
+      "noName": "(no name)"
+    },
+    "rooms": {
+      "title": "Rooms",
+      "add": "Add room",
+      "roomNumber": "Room number",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "edit": "Edit",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "empty": "No rooms in this site",
+      "hasFutureBookings": "Cannot deactivate: the room has {count} future bookings",
+      "duplicate": "This room number already exists in the site"
+    },
+    "settings": {
+      "title": "Site settings",
+      "name": "Site name",
+      "address": "Address",
+      "bookingWindowDays": "Booking window (days)",
+      "cancellationCutoffMinutes": "Change cutoff before start (minutes)",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "termsTitle": "Terms of Use",
+    "draftNotice": "Draft. The final wording must be approved before launch."
+  },
+  "errors": {
+    "UNAUTHENTICATED": "Please sign in again",
+    "FORBIDDEN": "You are not allowed to do this",
+    "NOT_FOUND": "Item not found",
+    "VALIDATION": "Invalid input",
+    "INTERNAL": "Something went wrong. Please try again",
+    "MEMBER_NOT_APPROVED": "You are not approved in this site",
+    "SLOT_TAKEN": "This slot was just taken",
+    "OUTSIDE_OPENING_HOURS": "Outside opening hours",
+    "CLOSED": "The room is closed at this time",
+    "OUTSIDE_BOOKING_WINDOW": "Outside the booking window",
+    "PAST_START": "Cannot book in the past",
+    "INVALID_START_STEP": "Start time must be on a quarter hour",
+    "INVALID_LOCAL_TIME": "This time does not exist on that date",
+    "CONFLICTS": "There are conflicts",
+    "ROOM_HAS_FUTURE_BOOKINGS": "The room has future bookings",
+    "CUTOFF_PASSED": "The change deadline has passed",
+    "ALREADY_EXISTS": "Already exists"
+  }
+}

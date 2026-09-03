@@ -1,0 +1,158 @@
+{
+  "app": {
+    "name": "מערכת תיאום חדרים",
+    "loading": "טוען…",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "close": "סגירה",
+    "confirm": "אישור",
+    "back": "חזרה",
+    "actions": "פעולות",
+    "yes": "כן",
+    "no": "לא",
+    "saved": "נשמר",
+    "requiredField": "שדה חובה"
+  },
+  "nav": {
+    "calendar": "יומן",
+    "myBookings": "ההזמנות שלי",
+    "profile": "פרופיל",
+    "admin": "ניהול",
+    "dashboard": "לוח מצב",
+    "members": "מטפלים",
+    "rooms": "חדרים",
+    "hours": "שעות פעילות",
+    "closures": "סגירות",
+    "series": "ססיות",
+    "reports": "דוחות",
+    "settings": "הגדרות",
+    "audit": "יומן ביקורת",
+    "signOut": "התנתקות",
+    "site": "מתחם",
+    "language": "שפה"
+  },
+  "login": {
+    "title": "התחברות",
+    "subtitle": "מערכת תיאום חדרי טיפול. הכניסה למטפלים שאושרו בלבד.",
+    "google": "המשך עם Google",
+    "or": "או",
+    "emailLabel": "כתובת דוא״ל",
+    "emailPlaceholder": "name@example.com",
+    "sendCode": "שלח קוד התחברות",
+    "codeSentTo": "שלחנו קוד בן 6 ספרות אל {email}",
+    "codeLabel": "קוד ההתחברות",
+    "verify": "התחבר",
+    "changeEmail": "כתובת אחרת",
+    "invalidEmail": "כתובת דוא״ל לא תקינה",
+    "invalidCode": "הקוד שגוי או שפג תוקפו",
+    "error": "ההתחברות נכשלה. נסה שוב.",
+    "legal": "בהתחברות אתה מאשר את <terms>תנאי השימוש</terms> ו<privacy>מדיניות הפרטיות</privacy>."
+  },
+  "onboarding": {
+    "profileTitle": "ברוך הבא",
+    "profileSubtitle": "כמה פרטים לפני שמתחילים",
+    "fullName": "שם מלא",
+    "language": "שפה מועדפת",
+    "continue": "המשך",
+    "sitesTitle": "בחירת מתחם",
+    "sitesSubtitle": "בקש הצטרפות למתחם אחד או יותר. מנהל המתחם יאשר את הבקשה.",
+    "request": "בקש הצטרפות",
+    "requested": "הבקשה נשלחה",
+    "pendingTitle": "ממתין לאישור",
+    "pendingSubtitle": "הבקשה נשלחה למנהל המתחם. תקבל דוא״ל כשתאושר.",
+    "status": {
+      "PENDING": "ממתין לאישור",
+      "APPROVED": "מאושר",
+      "REJECTED": "נדחה",
+      "SUSPENDED": "מושעה",
+      "NONE": "לא הוגשה בקשה"
+    },
+    "goToCalendar": "ליומן"
+  },
+  "profile": {
+    "title": "פרופיל",
+    "email": "דוא״ל",
+    "fullName": "שם מלא",
+    "language": "שפה",
+    "memberships": "חברויות במתחמים",
+    "requestMore": "בקש הצטרפות למתחם נוסף"
+  },
+  "locale": { "he": "עברית", "en": "English" },
+  "calendar": {
+    "title": "יומן",
+    "placeholder": "היומן ייבנה באבן הדרך הבאה (M1)."
+  },
+  "admin": {
+    "dashboard": {
+      "title": "לוח מצב",
+      "pending": "בקשות ממתינות",
+      "noPending": "אין בקשות ממתינות",
+      "sites": "מתחמים"
+    },
+    "members": {
+      "title": "מטפלים",
+      "filterAll": "הכול",
+      "name": "שם",
+      "email": "דוא״ל",
+      "site": "מתחם",
+      "status": "מצב",
+      "requestedAt": "תאריך בקשה",
+      "approve": "אישור",
+      "reject": "דחייה",
+      "suspend": "השעיה",
+      "reinstate": "החזרה",
+      "empty": "אין מטפלים להצגה",
+      "noName": "(ללא שם)"
+    },
+    "rooms": {
+      "title": "חדרים",
+      "add": "הוסף חדר",
+      "roomNumber": "מספר חדר",
+      "status": "מצב",
+      "active": "פעיל",
+      "inactive": "מושבת",
+      "deactivate": "השבתה",
+      "activate": "הפעלה",
+      "edit": "עריכה",
+      "moveUp": "למעלה",
+      "moveDown": "למטה",
+      "empty": "אין חדרים במתחם זה",
+      "hasFutureBookings": "לא ניתן להשבית: לחדר יש {count} הזמנות עתידיות",
+      "duplicate": "מספר חדר זה כבר קיים במתחם"
+    },
+    "settings": {
+      "title": "הגדרות מתחם",
+      "name": "שם המתחם",
+      "address": "כתובת",
+      "bookingWindowDays": "חלון הזמנה (ימים)",
+      "cancellationCutoffMinutes": "חסימת שינוי לפני ההתחלה (דקות)",
+      "status": "מצב",
+      "active": "פעיל",
+      "inactive": "מושבת"
+    }
+  },
+  "legal": {
+    "privacyTitle": "מדיניות פרטיות",
+    "termsTitle": "תנאי שימוש",
+    "draftNotice": "טיוטה. יש לאשר את הנוסח הסופי לפני השקה."
+  },
+  "errors": {
+    "UNAUTHENTICATED": "יש להתחבר מחדש",
+    "FORBIDDEN": "אין לך הרשאה לפעולה זו",
+    "NOT_FOUND": "הפריט לא נמצא",
+    "VALIDATION": "הקלט אינו תקין",
+    "INTERNAL": "אירעה שגיאה. נסה שוב",
+    "MEMBER_NOT_APPROVED": "אינך מאושר במתחם זה",
+    "SLOT_TAKEN": "המשבצת כבר נתפסה",
+    "OUTSIDE_OPENING_HOURS": "מחוץ לשעות הפעילות",
+    "CLOSED": "החדר סגור בזמן זה",
+    "OUTSIDE_BOOKING_WINDOW": "מחוץ לחלון ההזמנה",
+    "PAST_START": "לא ניתן להזמין בעבר",
+    "INVALID_START_STEP": "שעת ההתחלה חייבת להיות ברבע שעה עגולה",
+    "INVALID_LOCAL_TIME": "השעה אינה קיימת בתאריך זה",
+    "CONFLICTS": "קיימות התנגשויות",
+    "ROOM_HAS_FUTURE_BOOKINGS": "לחדר יש הזמנות עתידיות",
+    "CUTOFF_PASSED": "חלף המועד לשינוי",
+    "ALREADY_EXISTS": "הפריט כבר קיים"
+  }
+}
