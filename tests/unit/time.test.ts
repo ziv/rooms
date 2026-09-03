@@ -48,12 +48,20 @@ describe("day helpers", () => {
 describe("ranges", () => {
   const r = (a: string, b: string) => ({ start: new Date(a), end: new Date(b) });
   it("adjacent [start,end) ranges do not overlap (AC-06)", () => {
-    expect(overlaps(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T11:00Z", "2026-01-01T12:00Z"))).toBe(false);
-    expect(overlaps(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T10:30Z", "2026-01-01T11:30Z"))).toBe(true);
+    expect(overlaps(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T11:00Z", "2026-01-01T12:00Z"))).toBe(
+      false,
+    );
+    expect(overlaps(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T10:30Z", "2026-01-01T11:30Z"))).toBe(
+      true,
+    );
   });
   it("containedIn", () => {
-    expect(containedIn(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T08:00Z", "2026-01-01T13:00Z"))).toBe(true);
-    expect(containedIn(r("2026-01-01T12:30Z", "2026-01-01T13:30Z"), r("2026-01-01T08:00Z", "2026-01-01T13:00Z"))).toBe(false);
+    expect(containedIn(r("2026-01-01T10:00Z", "2026-01-01T11:00Z"), r("2026-01-01T08:00Z", "2026-01-01T13:00Z"))).toBe(
+      true,
+    );
+    expect(containedIn(r("2026-01-01T12:30Z", "2026-01-01T13:30Z"), r("2026-01-01T08:00Z", "2026-01-01T13:00Z"))).toBe(
+      false,
+    );
   });
 });
 

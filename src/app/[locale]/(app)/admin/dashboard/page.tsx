@@ -3,9 +3,12 @@ import { requireAdminPage } from "../../guards";
 import { AdminShell } from "../admin-shell";
 import { listMemberships } from "@/modules/memberships/service";
 import { listAccessibleSites } from "@/modules/sites/service";
+import { getDayAvailability } from "@/modules/availability/service";
 import { MembersTable } from "../members/members-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
+import { todayLocal } from "@/lib/time";
+import { TodayList } from "./today-list";
 
 export default async function DashboardPage() {
   const actor = await requireAdminPage();
@@ -14,6 +17,9 @@ export default async function DashboardPage() {
     listMemberships(actor, { status: "PENDING" }),
     listAccessibleSites(actor),
   ]);
+  const days = await Promise.all(
+    sites.map((s) => getDayAvailability(actor, { siteId: s.id, date: todayLocal(s.timezone) })),
+  );
   return (
     <AdminShell actor={actor}>
       <h1 className="text-xl font-semibold mb-6">{t("title")}</h1>
@@ -32,16 +38,19 @@ export default async function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        {sites.map((s) => (
+        {sites.map((s, i) => (
           <Card key={s.id}>
             <CardHeader>
-              <CardTitle>{s.name}</CardTitle>
+              <CardTitle>
+                <Link href={`/calendar/${s.id}`} className="hover:underline">
+                  {s.name}
+                </Link>
+              </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-1">
-              <div>{s.address}</div>
-              <Link href={`/calendar/${s.id}`} className="underline">
-                {s.name}
-              </Link>
+            <CardContent className="text-sm space-y-2">
+              <div className="text-muted-foreground">{s.address}</div>
+              <div className="font-medium">{t("today")}</div>
+              <TodayList day={days[i]} />
             </CardContent>
           </Card>
         ))}

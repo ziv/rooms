@@ -4,7 +4,18 @@ import { db, schema } from "@/lib/db";
 import { addDays, localToUtc } from "@/lib/time";
 import { cancelSeries, createSeries, previewSeries, splitSeries, getSeries } from "@/modules/recurrence/service";
 import { cancelBooking, moveBooking } from "@/modules/bookings/service";
-import { actorFor, futureDate, makeBooking, makeMembership, makeOpeningHours, makeRoom, makeSite, makeUser, resetDb, TZ } from "./helpers";
+import {
+  actorFor,
+  futureDate,
+  makeBooking,
+  makeMembership,
+  makeOpeningHours,
+  makeRoom,
+  makeSite,
+  makeUser,
+  resetDb,
+  TZ,
+} from "./helpers";
 
 beforeEach(resetDb);
 
@@ -23,7 +34,17 @@ async function setup() {
   const startsOn = futureDate(7);
   const weekday = new Date(startsOn + "T12:00:00Z").getUTCDay();
   const endsOn = addDays(startsOn, 7 * 7);
-  const base = { siteId: site.id, roomId: room1.id, userId: t1.id, weekday, startTime: "09:00", endTime: "12:00", startsOn, endsOn, note: null };
+  const base = {
+    siteId: site.id,
+    roomId: room1.id,
+    userId: t1.id,
+    weekday,
+    startTime: "09:00",
+    endTime: "12:00",
+    startsOn,
+    endsOn,
+    note: null,
+  };
   return { site, room1, room2, t1, t2, a, base, startsOn };
 }
 
@@ -37,7 +58,9 @@ describe("series", () => {
     expect(created).toBe(8);
     const rows = await db.query.bookings.findMany({ where: eq(schema.bookings.seriesId, series.id) });
     expect(rows).toHaveLength(8);
-    expect(rows.every((r) => r.bookingType === "SERIES" && r.endAt.getTime() - r.startAt.getTime() === 3 * 3600e3)).toBe(true);
+    expect(
+      rows.every((r) => r.bookingType === "SERIES" && r.endAt.getTime() - r.startAt.getTime() === 3 * 3600e3),
+    ).toBe(true);
     const notes = await db.query.notifications.findMany();
     expect(notes.map((n) => n.type)).toEqual(["SERIES_CREATED"]);
     // therapist cannot create a series
@@ -48,10 +71,16 @@ describe("series", () => {
     const { a, base, t2 } = await setup();
     await expect(previewSeries(a.admin, { ...base, endTime: "09:30" })).rejects.toMatchObject({ code: "VALIDATION" });
     await expect(previewSeries(a.admin, { ...base, endTime: "22:00" })).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(previewSeries(a.admin, { ...base, startTime: "09:10" })).rejects.toMatchObject({ code: "INVALID_START_STEP" });
-    await expect(previewSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 400) })).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(previewSeries(a.admin, { ...base, startTime: "09:10" })).rejects.toMatchObject({
+      code: "INVALID_START_STEP",
+    });
+    await expect(previewSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 400) })).rejects.toMatchObject({
+      code: "VALIDATION",
+    });
     const stranger = await makeUser();
-    await expect(previewSeries(a.admin, { ...base, userId: stranger.id })).rejects.toMatchObject({ code: "MEMBER_NOT_APPROVED" });
+    await expect(previewSeries(a.admin, { ...base, userId: stranger.id })).rejects.toMatchObject({
+      code: "MEMBER_NOT_APPROVED",
+    });
     void t2;
   });
 
@@ -60,11 +89,22 @@ describe("series", () => {
     // clash on occurrence #2 (10:00-11:00 by t2) and a closure on #3
     const occ2 = localToUtc(addDays(startsOn, 7), "10:00", TZ)!;
     const clash = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t2.id, startAt: occ2 });
-    await db.insert(schema.closures).values({ siteId: site.id, roomId: null, startAt: localToUtc(addDays(startsOn, 14), "00:00", TZ)!, endAt: localToUtc(addDays(startsOn, 15), "00:00", TZ)!, createdBy: t2.id });
+    await db
+      .insert(schema.closures)
+      .values({
+        siteId: site.id,
+        roomId: null,
+        startAt: localToUtc(addDays(startsOn, 14), "00:00", TZ)!,
+        endAt: localToUtc(addDays(startsOn, 15), "00:00", TZ)!,
+        createdBy: t2.id,
+      });
 
     const preview = await previewSeries(a.admin, base);
     expect(preview.conflictCount).toBe(2);
-    expect(preview.occurrences[1].conflict).toMatchObject({ code: "SLOT_TAKEN", with: { bookingId: clash.id, userName: "T2" } });
+    expect(preview.occurrences[1].conflict).toMatchObject({
+      code: "SLOT_TAKEN",
+      with: { bookingId: clash.id, userName: "T2" },
+    });
     expect(preview.occurrences[2].conflict).toMatchObject({ code: "CLOSED" });
 
     await expect(createSeries(a.admin, { ...base, skipConflicts: false })).rejects.toMatchObject({ code: "CONFLICTS" });
@@ -78,7 +118,9 @@ describe("series", () => {
   it("single occurrence changes mark an exception without touching the rest (AC-11)", async () => {
     const { a, base, room2 } = await setup();
     const { series } = await createSeries(a.admin, { ...base, skipConflicts: false });
-    const occ = (await db.query.bookings.findMany({ where: eq(schema.bookings.seriesId, series.id) })).sort((x, y) => x.startAt.getTime() - y.startAt.getTime());
+    const occ = (await db.query.bookings.findMany({ where: eq(schema.bookings.seriesId, series.id) })).sort(
+      (x, y) => x.startAt.getTime() - y.startAt.getTime(),
+    );
     const moved = await moveBooking(a.admin, { bookingId: occ[1].id, roomId: room2.id, startAt: occ[1].startAt });
     expect(moved.isException).toBe(true);
     expect(moved.endAt.getTime() - moved.startAt.getTime()).toBe(3 * 3600e3); // duration kept
@@ -93,7 +135,12 @@ describe("series", () => {
     const { a, base, room2, startsOn } = await setup();
     const { series } = await createSeries(a.admin, { ...base, skipConflicts: false });
     const fromDate = addDays(startsOn, 21); // 4th occurrence
-    const result = await splitSeries(a.admin, { seriesId: series.id, fromDate, changes: { roomId: room2.id, startTime: "14:00", endTime: "16:00" }, skipConflicts: false });
+    const result = await splitSeries(a.admin, {
+      seriesId: series.id,
+      fromDate,
+      changes: { roomId: room2.id, startTime: "14:00", endTime: "16:00" },
+      skipConflicts: false,
+    });
     expect(result.deleted).toBe(5);
     expect(result.created).toBe(5);
     const old = await getSeries(a.admin, series.id);
@@ -116,7 +163,15 @@ describe("series", () => {
     const { a, base, site, room1, t1 } = await setup();
     const { series } = await createSeries(a.admin, { ...base, skipConflicts: false });
     // a past occurrence attached manually
-    const past = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: new Date(Date.now() - 7 * 86400e3), minutes: 180, type: "SERIES", seriesId: series.id });
+    const past = await makeBooking({
+      siteId: site.id,
+      roomId: room1.id,
+      userId: t1.id,
+      startAt: new Date(Date.now() - 7 * 86400e3),
+      minutes: 180,
+      type: "SERIES",
+      seriesId: series.id,
+    });
     const { cancelled } = await cancelSeries(a.admin, { seriesId: series.id, reason: "done" });
     expect(cancelled).toBe(8);
     const pastRow = await db.query.bookings.findFirst({ where: eq(schema.bookings.id, past.id) });

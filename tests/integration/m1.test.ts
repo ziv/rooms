@@ -7,7 +7,18 @@ import { setOpeningHours } from "@/modules/opening-hours/service";
 import { createClosure, deleteClosure, listClosures } from "@/modules/closures/service";
 import { getDayAvailability } from "@/modules/availability/service";
 import { cancelBooking, createBooking, getBooking, listMyBookings, moveBooking } from "@/modules/bookings/service";
-import { actorFor, futureDate, makeBooking, makeMembership, makeOpeningHours, makeRoom, makeSite, makeUser, resetDb, TZ } from "./helpers";
+import {
+  actorFor,
+  futureDate,
+  makeBooking,
+  makeMembership,
+  makeOpeningHours,
+  makeRoom,
+  makeSite,
+  makeUser,
+  resetDb,
+  TZ,
+} from "./helpers";
 
 beforeEach(resetDb);
 
@@ -34,13 +45,33 @@ async function setup() {
 describe("opening hours", () => {
   it("validates segments and reports warnings for future bookings outside new hours", async () => {
     const { site, room1, t1, a, at } = await setup();
-    await expect(setOpeningHours(a.admin, { siteId: site.id, weekday: 1, segments: [{ start: "08:10", end: "12:00" }] })).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(setOpeningHours(a.admin, { siteId: site.id, weekday: 1, segments: [{ start: "08:00", end: "12:00" }, { start: "11:00", end: "14:00" }] })).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(setOpeningHours(a.t1, { siteId: site.id, weekday: 1, segments: [] })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      setOpeningHours(a.admin, { siteId: site.id, weekday: 1, segments: [{ start: "08:10", end: "12:00" }] }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(
+      setOpeningHours(a.admin, {
+        siteId: site.id,
+        weekday: 1,
+        segments: [
+          { start: "08:00", end: "12:00" },
+          { start: "11:00", end: "14:00" },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION" });
+    await expect(setOpeningHours(a.t1, { siteId: site.id, weekday: 1, segments: [] })).rejects.toMatchObject({
+      code: "FORBIDDEN",
+    });
 
     const booking = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("18:00") });
     const wd = new Date(at("18:00")).getUTCDay(); // same as local weekday at 18:00 local
-    const { warnings } = await setOpeningHours(a.admin, { siteId: site.id, weekday: wd, segments: [{ start: "08:00", end: "13:00" }, { start: "14:00", end: "17:00" }] });
+    const { warnings } = await setOpeningHours(a.admin, {
+      siteId: site.id,
+      weekday: wd,
+      segments: [
+        { start: "08:00", end: "13:00" },
+        { start: "14:00", end: "17:00" },
+      ],
+    });
     expect(warnings.map((w) => w.bookingId)).toEqual([booking.id]);
   });
 });
@@ -50,7 +81,14 @@ describe("closures", () => {
     const { site, room1, room2, t1, t2, a, at } = await setup();
     const b1 = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("10:00") });
     await makeBooking({ siteId: site.id, roomId: room2.id, userId: t2.id, startAt: at("15:00") }); // outside range
-    const input = { siteId: site.id, roomId: null, startAt: at("09:00"), endAt: at("12:00"), reason: "חג", cancelConflicts: false };
+    const input = {
+      siteId: site.id,
+      roomId: null,
+      startAt: at("09:00"),
+      endAt: at("12:00"),
+      reason: "חג",
+      cancelConflicts: false,
+    };
 
     await expect(createClosure(a.t1, input)).rejects.toMatchObject({ code: "FORBIDDEN" });
     const err = await createClosure(a.admin, input).catch((e) => e);
@@ -78,7 +116,16 @@ describe("availability DTO (AC-01, AC-02)", () => {
     const { site, room1, t1, t2, a, date, at } = await setup();
     await makeBooking({ siteId: site.id, roomId: room1.id, userId: t2.id, startAt: at("10:00") });
     const mine = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("11:00") });
-    await db.insert(schema.closures).values({ siteId: site.id, roomId: null, startAt: at("13:00"), endAt: at("14:00"), reason: "secret", createdBy: t1.id });
+    await db
+      .insert(schema.closures)
+      .values({
+        siteId: site.id,
+        roomId: null,
+        startAt: at("13:00"),
+        endAt: at("14:00"),
+        reason: "secret",
+        createdBy: t1.id,
+      });
 
     const forT1 = await getDayAvailability(a.t1, { siteId: site.id, date });
     const room = forT1.rooms.find((r) => r.roomId === room1.id)!;
@@ -90,7 +137,10 @@ describe("availability DTO (AC-01, AC-02)", () => {
     const closed = room.blocks.find((b) => b.kind === "CLOSED")!;
     expect("reason" in closed).toBe(false);
     expect(forT1.bookingWindow).not.toBeNull();
-    expect(forT1.rooms[0].openSegments[0]).toEqual({ start: at("08:00").toISOString(), end: at("21:00").toISOString() });
+    expect(forT1.rooms[0].openSegments[0]).toEqual({
+      start: at("08:00").toISOString(),
+      end: at("21:00").toISOString(),
+    });
 
     const forAdmin = await getDayAvailability(a.admin, { siteId: site.id, date });
     const adminRoom = forAdmin.rooms.find((r) => r.roomId === room1.id)!;
@@ -100,7 +150,9 @@ describe("availability DTO (AC-01, AC-02)", () => {
 
     // AC-02: no membership in another site
     const other = await makeSite("Other");
-    await expect(getDayAvailability(a.t1, { siteId: other.id, date })).rejects.toMatchObject({ code: "MEMBER_NOT_APPROVED" });
+    await expect(getDayAvailability(a.t1, { siteId: other.id, date })).rejects.toMatchObject({
+      code: "MEMBER_NOT_APPROVED",
+    });
   });
 });
 
@@ -114,8 +166,12 @@ describe("createBooking rules", () => {
     await expect(create(a.t1, { startAt: at("10:10") })).rejects.toMatchObject({ code: "INVALID_START_STEP" });
     await expect(create(a.t1, { startAt: at("07:00") })).rejects.toMatchObject({ code: "OUTSIDE_OPENING_HOURS" });
     await expect(create(a.t1, { startAt: at("20:15") })).rejects.toMatchObject({ code: "OUTSIDE_OPENING_HOURS" }); // AC-07: 20:15–21:15 exceeds 21:00
-    await expect(create(a.t1, { startAt: addMinutes(new Date(), -120) })).rejects.toMatchObject({ code: /PAST_START|INVALID_START_STEP|OUTSIDE_OPENING_HOURS/ });
-    await expect(create(a.t1, { startAt: localToUtc(futureDate(120), "10:00", TZ)! })).rejects.toMatchObject({ code: "OUTSIDE_BOOKING_WINDOW" });
+    await expect(create(a.t1, { startAt: addMinutes(new Date(), -120) })).rejects.toMatchObject({
+      code: /PAST_START|INVALID_START_STEP|OUTSIDE_OPENING_HOURS/,
+    });
+    await expect(create(a.t1, { startAt: localToUtc(futureDate(120), "10:00", TZ)! })).rejects.toMatchObject({
+      code: "OUTSIDE_BOOKING_WINDOW",
+    });
 
     // not a member
     const stranger = await makeUser();
@@ -124,7 +180,9 @@ describe("createBooking rules", () => {
     await expect(create(a.t1, { forUserId: t2.id })).rejects.toMatchObject({ code: "FORBIDDEN" });
 
     // closure
-    await db.insert(schema.closures).values({ siteId: site.id, roomId: room1.id, startAt: at("12:00"), endAt: at("13:00"), createdBy: t1.id });
+    await db
+      .insert(schema.closures)
+      .values({ siteId: site.id, roomId: room1.id, startAt: at("12:00"), endAt: at("13:00"), createdBy: t1.id });
     await expect(create(a.t1, { startAt: at("12:30") })).rejects.toMatchObject({ code: "CLOSED" });
     await expect(create(a.t1, { startAt: at("11:00") })).resolves.toMatchObject({ status: "CONFIRMED" }); // 11:00–12:00 touches closure start only
 
@@ -142,11 +200,17 @@ describe("createBooking rules", () => {
     await expect(create(a.t1, { roomId: room2.id, startAt: at("10:00") })).resolves.toBeTruthy();
 
     // admin: for a therapist, and in the past / beyond window (BKG-006)
-    await expect(create(a.admin, { roomId: room2.id, startAt: at("14:00"), forUserId: t2.id })).resolves.toMatchObject({ userId: t2.id });
+    await expect(create(a.admin, { roomId: room2.id, startAt: at("14:00"), forUserId: t2.id })).resolves.toMatchObject({
+      userId: t2.id,
+    });
     const pastDate = new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
-    await expect(create(a.admin, { roomId: room2.id, startAt: localToUtc(pastDate, "10:00", TZ)!, forUserId: t2.id })).resolves.toBeTruthy();
+    await expect(
+      create(a.admin, { roomId: room2.id, startAt: localToUtc(pastDate, "10:00", TZ)!, forUserId: t2.id }),
+    ).resolves.toBeTruthy();
     // admin cannot book for a non-member
-    await expect(create(a.admin, { roomId: room2.id, startAt: at("16:00"), forUserId: stranger.id })).rejects.toMatchObject({ code: "MEMBER_NOT_APPROVED" });
+    await expect(
+      create(a.admin, { roomId: room2.id, startAt: at("16:00"), forUserId: stranger.id }),
+    ).rejects.toMatchObject({ code: "MEMBER_NOT_APPROVED" });
     void date;
   });
 
@@ -164,10 +228,14 @@ describe("createBooking rules", () => {
   it("20 concurrent requests for one slot create exactly one booking (AC-03)", async () => {
     const { site, room1, a, at } = await setup();
     const results = await Promise.allSettled(
-      Array.from({ length: 20 }, () => createBooking(a.t1, { id: randomUUID(), siteId: site.id, roomId: room1.id, startAt: at("10:00"), note: null })),
+      Array.from({ length: 20 }, () =>
+        createBooking(a.t1, { id: randomUUID(), siteId: site.id, roomId: room1.id, startAt: at("10:00"), note: null }),
+      ),
     );
     const ok = results.filter((r) => r.status === "fulfilled");
-    const taken = results.filter((r) => r.status === "rejected" && (r.reason as { code: string }).code === "SLOT_TAKEN");
+    const taken = results.filter(
+      (r) => r.status === "rejected" && (r.reason as { code: string }).code === "SLOT_TAKEN",
+    );
     expect(ok).toHaveLength(1);
     expect(taken).toHaveLength(19);
     expect(await db.$count(schema.bookings)).toBe(1);
@@ -180,7 +248,9 @@ describe("move / cancel", () => {
     const mine = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("10:00") });
     await makeBooking({ siteId: site.id, roomId: room2.id, userId: t2.id, startAt: at("10:00") });
 
-    await expect(moveBooking(a.t1, { bookingId: mine.id, roomId: room2.id, startAt: at("10:00") })).rejects.toMatchObject({ code: "SLOT_TAKEN" });
+    await expect(
+      moveBooking(a.t1, { bookingId: mine.id, roomId: room2.id, startAt: at("10:00") }),
+    ).rejects.toMatchObject({ code: "SLOT_TAKEN" });
     const unchanged = await db.query.bookings.findFirst({ where: eq(schema.bookings.id, mine.id) });
     expect(unchanged).toMatchObject({ roomId: room1.id, startAt: mine.startAt, version: 1 });
 
@@ -189,7 +259,9 @@ describe("move / cancel", () => {
     expect(moved.endAt.getTime() - moved.startAt.getTime()).toBe(3600e3);
 
     // t2 cannot see or move t1's booking
-    await expect(moveBooking(a.t2, { bookingId: mine.id, roomId: room1.id, startAt: at("13:00") })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(
+      moveBooking(a.t2, { bookingId: mine.id, roomId: room1.id, startAt: at("13:00") }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(getBooking(a.t2, mine.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
     await expect(getBooking(a.admin, mine.id)).resolves.toMatchObject({ userName: "Therapist One" });
 
@@ -206,10 +278,17 @@ describe("move / cancel", () => {
     expect(cancelled.status).toBe("CANCELLED");
     expect(await db.$count(schema.bookings)).toBe(1);
     // slot is free again
-    await expect(createBooking(a.t1, { id: randomUUID(), siteId: site.id, roomId: room1.id, startAt: at("10:00"), note: null })).resolves.toBeTruthy();
+    await expect(
+      createBooking(a.t1, { id: randomUUID(), siteId: site.id, roomId: room1.id, startAt: at("10:00"), note: null }),
+    ).resolves.toBeTruthy();
 
     // started booking: therapist blocked, admin allowed with notification
-    const started = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: addMinutes(new Date(), -30) });
+    const started = await makeBooking({
+      siteId: site.id,
+      roomId: room1.id,
+      userId: t1.id,
+      startAt: addMinutes(new Date(), -30),
+    });
     await expect(cancelBooking(a.t1, { bookingId: started.id })).rejects.toMatchObject({ code: "CUTOFF_PASSED" });
     await cancelBooking(a.admin, { bookingId: started.id, reason: "test" });
     const notes = await db.query.notifications.findMany({ where: eq(schema.notifications.userId, t1.id) });
@@ -218,17 +297,43 @@ describe("move / cancel", () => {
     // series occurrence cancelled by therapist notifies the admin
     const [series] = await db
       .insert(schema.recurrenceSeries)
-      .values({ siteId: site.id, roomId: room1.id, userId: t1.id, weekday: 1, startTime: "09:00", endTime: "12:00", startsOn: "2030-01-07", endsOn: "2030-03-04", createdBy: t1.id, updatedBy: t1.id })
+      .values({
+        siteId: site.id,
+        roomId: room1.id,
+        userId: t1.id,
+        weekday: 1,
+        startTime: "09:00",
+        endTime: "12:00",
+        startsOn: "2030-01-07",
+        endsOn: "2030-03-04",
+        createdBy: t1.id,
+        updatedBy: t1.id,
+      })
       .returning();
-    const occ = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("15:00"), minutes: 180, type: "SERIES", seriesId: series.id });
+    const occ = await makeBooking({
+      siteId: site.id,
+      roomId: room1.id,
+      userId: t1.id,
+      startAt: at("15:00"),
+      minutes: 180,
+      type: "SERIES",
+      seriesId: series.id,
+    });
     const occCancelled = await cancelBooking(a.t1, { bookingId: occ.id });
     expect(occCancelled.isException).toBe(true);
-    const adminNotes = await db.query.notifications.findMany({ where: eq(schema.notifications.type, "OCCURRENCE_CANCELLED_BY_THERAPIST") });
+    const adminNotes = await db.query.notifications.findMany({
+      where: eq(schema.notifications.type, "OCCURRENCE_CANCELLED_BY_THERAPIST"),
+    });
     expect(adminNotes).toHaveLength(1);
 
     const upcoming = await listMyBookings(a.t1, { scope: "upcoming" });
     expect(upcoming.every((r) => r.status === "CONFIRMED")).toBe(true);
-    const ended = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: addMinutes(new Date(), -180) });
+    const ended = await makeBooking({
+      siteId: site.id,
+      roomId: room1.id,
+      userId: t1.id,
+      startAt: addMinutes(new Date(), -180),
+    });
     const past = await listMyBookings(a.t1, { scope: "past" });
     expect(past.map((r) => r.id)).toEqual([ended.id]);
     expect(upcoming.map((r) => r.id)).not.toContain(started.id); // started but cancelled

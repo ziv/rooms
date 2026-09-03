@@ -1,7 +1,14 @@
 /** Pure expansion of a weekly series into occurrence instants. Shared by server and tests. */
 import { addDays, localToUtc, parseDate, weekdayOf, type Range } from "@/lib/time";
 
-export type ExpandInput = { weekday: number; startTime: string; endTime: string; startsOn: string; endsOn: string; tz: string };
+export type ExpandInput = {
+  weekday: number;
+  startTime: string;
+  endTime: string;
+  startsOn: string;
+  endsOn: string;
+  tz: string;
+};
 export type Occurrence = { date: string; range: Range | null; invalid?: "INVALID_LOCAL_TIME" };
 
 export const MAX_SERIES_WEEKS = 52;

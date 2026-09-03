@@ -7,6 +7,7 @@ import type { Actor } from "@/modules/auth/actor";
 import { requireAdmin } from "@/modules/auth/guards";
 import type { DecideMembershipInput } from "@/lib/validation/memberships";
 import type { SiteMembership, MembershipStatus } from "@/lib/db/schema";
+import { enqueue, superAdminRecipient } from "@/modules/notifications/outbox";
 
 export async function listForUser(userId: string): Promise<SiteMembership[]> {
   return db.query.siteMemberships.findMany({ where: eq(schema.siteMemberships.userId, userId) });
@@ -45,7 +46,21 @@ export async function requestMembership(actor: Actor, siteId: string): Promise<S
       before: existing ? { status: existing.status } : null,
       after: { status: row.status },
     });
-    // TODO(M3): enqueue MEMBERSHIP_REQUESTED notification to the super admin
+    const admin = await superAdminRecipient(tx);
+    if (admin) {
+      await enqueue(tx, {
+        userId: admin.userId,
+        locale: admin.locale,
+        type: "MEMBERSHIP_REQUESTED",
+        payload: {
+          siteId: site.id,
+          siteName: site.name,
+          userId: actor.userId,
+          userName: actor.fullName,
+          userEmail: actor.email,
+        },
+      });
+    }
     return row;
   });
 }
@@ -81,7 +96,18 @@ export async function decideMembership(actor: Actor, input: DecideMembershipInpu
       before: { status: existing.status },
       after: { status: row.status, userId: row.userId },
     });
-    // TODO(M3): enqueue MEMBERSHIP_DECIDED notification to the therapist
+    const [user, site] = await Promise.all([
+      tx.query.users.findFirst({ where: eq(schema.users.id, existing.userId) }),
+      tx.query.sites.findFirst({ where: eq(schema.sites.id, existing.siteId) }),
+    ]);
+    if (user && site) {
+      await enqueue(tx, {
+        userId: user.id,
+        locale: user.preferredLocale,
+        type: "MEMBERSHIP_DECIDED",
+        payload: { siteId: site.id, siteName: site.name, status: row.status },
+      });
+    }
     return row;
   });
 }

@@ -59,9 +59,13 @@ export function actorFor(
 export const TZ = "Asia/Jerusalem";
 
 /** Opening hours for every weekday (default 08:00–21:00). */
-export async function makeOpeningHours(siteId: string, segments: { start: string; end: string }[] = [{ start: "08:00", end: "21:00" }]) {
+export async function makeOpeningHours(
+  siteId: string,
+  segments: { start: string; end: string }[] = [{ start: "08:00", end: "21:00" }],
+) {
   const rows = [];
-  for (let wd = 0; wd <= 6; wd++) for (const s of segments) rows.push({ siteId, weekday: wd, startTime: s.start, endTime: s.end });
+  for (let wd = 0; wd <= 6; wd++)
+    for (const s of segments) rows.push({ siteId, weekday: wd, startTime: s.start, endTime: s.end });
   await db.insert(schema.openingHours).values(rows);
 }
 

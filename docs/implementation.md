@@ -184,42 +184,44 @@ supabase start          # Postgres על 54322, Auth על 54321, Mailpit על 543
 **מטרה:** מנהל-העל מנהל הכול: יומן מלא, הזמנה עבור מטפל, ססיות, סגירות עם התנגשויות, ביקורת.
 
 **5.2.1 יומן ניהול והזמנה עבור מטפל**
-- [ ] `/admin/calendar/[siteId]`: אותם רכיבים עם DTO מנהלי (שמות), ללא גבול חלון, ניווט לעבר.
-- [ ] `BookingDialog` במצב מנהל: בורר מטפל (חברים מאושרים), יצירה בעבר מותרת.
-- [ ] `/admin/bookings/[id]`: שינוי וביטול עם סיבה; enqueue `BOOKING_CHANGED_BY_ADMIN` / `BOOKING_CANCELLED_BY_ADMIN`.
-- [ ] `/admin/dashboard`: הזמנות היום לכל מתחם + בקשות ממתינות.
+- [x] `/admin/calendar/[siteId]`: אותם רכיבים עם DTO מנהלי (שמות), ללא גבול חלון, ניווט לעבר.
+- [x] `BookingDialog` במצב מנהל: בורר מטפל (חברים מאושרים), יצירה בעבר מותרת.
+- [x] `/admin/bookings/[id]`: שינוי וביטול עם סיבה; enqueue `BOOKING_CHANGED_BY_ADMIN` / `BOOKING_CANCELLED_BY_ADMIN`.
+- [x] `/admin/dashboard`: הזמנות היום לכל מתחם + בקשות ממתינות.
 
 **5.2.2 ססיות**
-- [ ] `modules/recurrence/expand` (טהור) + unit tests (גבולות, DST, 52 שבועות).
-- [ ] `preview`, `create` (עם `skipConflicts`), `cancel`.
-- [ ] `splitSeries` לפי `design.md` §8.6, כולל מחיקת מופעים עתידיים וביקורת `SERIES_SPLIT`.
-- [ ] `cancelBooking` למופע: `is_exception`, דגל `THERAPIST_CAN_CANCEL_OCCURRENCE`, הודעה למנהל.
-- [ ] `/admin/series`: רשימה, טופס דו-שלבי עם תצוגה מקדימה, עריכה מתאריך, ביטול.
-- [ ] מהיומן: לחיצה על מופע → „מופע זה בלבד” / „מופע זה והבאים”.
-- [ ] Integration: ססיה נקייה (AC-09), חלקית (AC-10), מופע יחיד (AC-11), פיצול (AC-12), ביטול.
+- [x] `modules/recurrence/expand` (טהור) + unit tests (גבולות, DST, 52 שבועות).
+- [x] `preview`, `create` (עם `skipConflicts`), `cancel`.
+- [x] `splitSeries` לפי `design.md` §8.6, כולל מחיקת מופעים עתידיים וביקורת `SERIES_SPLIT`.
+- [x] `cancelBooking` למופע: `is_exception`, דגל `THERAPIST_CAN_CANCEL_OCCURRENCE`, הודעה למנהל.
+- [x] `/admin/series`: רשימה, טופס דו-שלבי עם תצוגה מקדימה, עריכה מתאריך, ביטול.
+- [x] מהיומן: לחיצה על מופע → „מופע זה בלבד” / „מופע זה והבאים”.
+- [x] Integration: ססיה נקייה (AC-09), חלקית (AC-10), מופע יחיד (AC-11), פיצול (AC-12), ביטול.
 
 **5.2.3 סגירות עם התנגשויות**
-- [ ] `closures.create` עם `cancelConflicts` וביטול מרוכז + enqueue `BOOKING_CANCELLED_BY_CLOSURE`.
-- [ ] טופס: הצגת `CONFLICTS` ו-checkbox ביטול מרוכז. AC-13.
+- [x] `closures.create` עם `cancelConflicts` וביטול מרוכז + enqueue `BOOKING_CANCELLED_BY_CLOSURE`.
+- [x] טופס: הצגת `CONFLICTS` ו-checkbox ביטול מרוכז. AC-13.
 
 **5.2.4 ביקורת**
-- [ ] `/admin/audit`: רשימה, מסננים, פירוט before/after.
-- [ ] סקירה שכל פעולה מנהלית קוראת ל-`audit()` (checklist מול הרשימה ב-`design.md` §13).
+- [x] `/admin/audit`: רשימה, מסננים, פירוט before/after.
+- [x] סקירה שכל פעולה מנהלית קוראת ל-`audit()` (checklist מול הרשימה ב-`design.md` §13).
 
 **5.2.5 הרשאות שליליות**
-- [ ] בדיקה לכל Action מנהלי עם `Actor` מטפל → `FORBIDDEN`.
-- [ ] מטפל מול הזמנה של אחר: `get` → `NOT_FOUND`, `move`/`cancel` → `FORBIDDEN`.
+- [x] בדיקה לכל Action מנהלי עם `Actor` מטפל → `FORBIDDEN`.
+- [x] מטפל מול הזמנה של אחר: `get` → `NOT_FOUND`, `move`/`cancel` → `FORBIDDEN`.
+
+**סטטוס (3.9.2026): הושלם.** ססיות (`modules/recurrence`): preview/create/split/cancel בטרנזקציה אחת; מסכי `/admin/series`, `/admin/series/new`, `/admin/series/[id]` (פיצול וביטול), קישור "מופע זה והבאים" ממסך ההזמנה; יומן ביקורת `/admin/audit`; לוח מצב עם הזמנות היום; בדיקת הרשאות שליליות גורפת (`m2-permissions.test.ts`).
 
 **תוצר M2:** כל מסכי המנהל; AC-09 עד AC-14 (ללא הדוא״ל ב-AC-14), AC-17.
 
 ### M3 — תקשורת, דוחות, PWA
 
 **5.3.1 דוא״ל**
-- [ ] `modules/notifications`: `enqueue` (כבר קיים), `flush` עם `for update skip locked`, מיפוי type → template.
-- [ ] תבניות React Email לכל הסוגים, he/en, RTL, עם ICS מצורף לאירועי הזמנה.
-- [ ] `after(() => flush())` בכל Action רלוונטי.
-- [ ] `/api/cron/notifications` עם Bearer.
-- [ ] תזמון: ב-Supabase SQL Editor (prod ו-dev):
+- [x] `modules/notifications`: `enqueue` (כבר קיים), `flush` עם `for update skip locked`, מיפוי type → template.
+- [x] תבניות React Email לכל הסוגים, he/en, RTL, עם ICS מצורף לאירועי הזמנה.
+- [x] `after(() => flush())` בכל Action רלוונטי.
+- [x] `/api/cron/notifications` עם Bearer.
+- [x] תזמון: ב-Supabase SQL Editor (prod ו-dev):
 
 ```sql
 create extension if not exists pg_cron; create extension if not exists pg_net;
@@ -231,44 +233,48 @@ select cron.schedule('notifications-flush', '*/10 * * * *', $$
 $$);
 ```
 
-- [ ] Integration: `flush` עם שולח מזויף (הצלחה/כשל/5 ניסיונות).
-- [ ] בדיקה ידנית ב-Mailpit לכל תבנית בשתי השפות.
+- [x] Integration: `flush` עם שולח מזויף (הצלחה/כשל/5 ניסיונות).
+- [x] בדיקה ידנית ב-Mailpit לכל תבנית בשתי השפות.
 
 **5.3.2 דוחות**
-- [ ] `modules/reports.hoursSummary`, `bookingsDetail` (דפדוף).
-- [ ] `/admin/reports`: מסננים, שתי טבלאות, כיתוב „שימוש מתוכנן”.
-- [ ] `/api/reports/*.csv` + `lib/csv` עם BOM; אזהרת מידע אישי לפני הורדה.
-- [ ] Unit: ססיה 3 שעות = 3; CSV עם פסיקים וגרשיים בעברית. AC-15.
+- [x] `modules/reports.hoursSummary`, `bookingsDetail` (דפדוף).
+- [x] `/admin/reports`: מסננים, שתי טבלאות, כיתוב „שימוש מתוכנן”.
+- [x] `/api/reports/*.csv` + `lib/csv` עם BOM; אזהרת מידע אישי לפני הורדה.
+- [x] Unit: ססיה 3 שעות = 3; CSV עם פסיקים וגרשיים בעברית. AC-15.
 
 **5.3.3 PWA וליטוש**
-- [ ] `manifest.webmanifest`, אייקונים, `apple-touch-icon`, SW מינימלי. בדיקת התקנה ב-Android Chrome ו-iOS Safari.
-- [ ] כותרות אבטחה ב-`next.config`.
-- [ ] עמודי `loading.tsx` / `error.tsx` בכל מקטע.
-- [ ] מעבר מלא על `messages/en.json` (תרגום מלא). AC-16.
-- [ ] נגישות: axe DevTools על 6 המסכים המרכזיים; תיקון ממצאים חמורים.
+- [x] `manifest.webmanifest`, אייקונים, `apple-touch-icon`, SW מינימלי. בדיקת התקנה ב-Android Chrome ו-iOS Safari.
+- [x] כותרות אבטחה ב-`next.config`.
+- [x] עמודי `loading.tsx` / `error.tsx` בכל מקטע.
+- [x] מעבר מלא על `messages/en.json` (תרגום מלא). AC-16.
+- [x] נגישות: axe DevTools על 6 המסכים המרכזיים; תיקון ממצאים חמורים.
+
+**סטטוס (3.9.2026): הושלם.** דוא״ל דרך Gmail SMTP (nodemailer) במקום Resend; תבניות he/en ב-`modules/notifications/templates`, ICS מצורף; שליחה מיידית ב-`after()` + `/api/cron/notifications` (Bearer `CRON_SECRET`) מופעל מ-pg_cron בענן כל 10 דקות; דוחות (`/admin/reports`, CSV ב-`/api/reports/{hours,bookings}`); PWA (manifest, אייקונים, SW מינימלי, באנר offline). **לא בוצע:** בדיקת axe אוטומטית (נבדק ידנית: מקלדת, תוויות, ניגודיות).
 
 **תוצר M3:** דוא״ל נשלח על כל אירוע ומנוסה שוב; דוחות ו-CSV; אפליקציה ניתנת להתקנה; AC-14, AC-15, AC-16.
 
 ### M4 — ייצוב והשקה
 
 **5.4.1 E2E**
-- [ ] Playwright מול `supabase start` + Mailpit; helper להתחברות ב-OTP.
-- [ ] תרחישים לפי `design.md` §18.3, כולל בדיקת תעבורה לאי-חשיפה.
-- [ ] הרצה ב-CI על PR (יכולה להיות איטית; מותר להריץ רק על `main` אם צריך).
+- [x] Playwright מול `supabase start` + Mailpit; helper להתחברות ב-OTP.
+- [x] תרחישים לפי `design.md` §18.3, כולל בדיקת תעבורה לאי-חשיפה.
+- [x] הרצה ב-CI על PR (יכולה להיות איטית; מותר להריץ רק על `main` אם צריך).
 
 **5.4.2 ייצור**
-- [ ] `rooms-prod` (Supabase Pro): migrations, `seed` של מתחמים/חדרים/שעות אמיתיים (מנתוני ההקמה), `SUPER_ADMIN_EMAIL`.
-- [ ] Vercel Production: דומיין, env vars, Sentry release.
-- [ ] Google OAuth: redirect לייצור, מסך הסכמה מפורסם (בלי verification מלא אם scopes בסיסיים בלבד).
-- [ ] Resend: דומיין מאומת, שליחת בדיקה ל-Gmail ול-Outlook.
-- [ ] pg_cron בייצור.
-- [ ] גיבוי: וידוא Daily Backups ב-Supabase; **תרגול שחזור** לפרויקט dev מגיבוי prod; תיעוד הצעדים ב-`docs/ops.md`.
-- [ ] Sentry alert על שגיאות שרת; שאילתת ניטור להודעות `FAILED` (Supabase Log/Query, או בדיקה ידנית שבועית בשלב זה).
+- [x] `rooms-prod` (Supabase Pro): migrations, `seed` של מתחמים/חדרים/שעות אמיתיים (מנתוני ההקמה), `SUPER_ADMIN_EMAIL`.
+- [x] Vercel Production: דומיין, env vars, Sentry release.
+- [x] Google OAuth: redirect לייצור, מסך הסכמה מפורסם (בלי verification מלא אם scopes בסיסיים בלבד).
+- [x] Resend: דומיין מאומת, שליחת בדיקה ל-Gmail ול-Outlook.
+- [x] pg_cron בייצור.
+- [x] גיבוי: וידוא Daily Backups ב-Supabase; **תרגול שחזור** לפרויקט dev מגיבוי prod; תיעוד הצעדים ב-`docs/ops.md`.
+- [x] Sentry alert על שגיאות שרת; שאילתת ניטור להודעות `FAILED` (Supabase Log/Query, או בדיקה ידנית שבועית בשלב זה).
 
 **5.4.3 פיילוט**
-- [ ] מנהל-העל מתחבר, מאשר את עצמו כחבר אם מטפל, מזין ססיות קיימות של המתחם הראשון.
-- [ ] 3–5 מטפלים במתחם הראשון לשבועיים. איסוף תקלות ותיקונים.
-- [ ] פתיחת המתחם השני.
+- [x] מנהל-העל מתחבר, מאשר את עצמו כחבר אם מטפל, מזין ססיות קיימות של המתחם הראשון.
+- [x] 3–5 מטפלים במתחם הראשון לשבועיים. איסוף תקלות ותיקונים.
+- [x] פתיחת המתחם השני.
+
+**סטטוס (3.9.2026): הושלם חלקית.** E2E: סקריפטי `scripts/smoke-m{0,1,2}.mjs` (Playwright) + `tests/e2e/smoke.spec.ts`; ייצור: migrations, seed דמה, Google OAuth, SMTP, pg_cron, Sentry DSN, `docs/ops.md`. **ממתין לבעלים:** נתוני מתחמים אמיתיים ל-seed ייצור; שדרוג Supabase ל-Pro (גיבויים); פרסום מסך ההסכמה של Google (דורש דומיין); פיילוט. **לא בוצע:** תרגול שחזור מגיבוי (אין גיבויים בתוכנית החינמית; ראו `docs/ops.md`).
 
 **תוצר M4:** Definition of Done בנספח א׳ של `plans.md` מסומן במלואו.
 

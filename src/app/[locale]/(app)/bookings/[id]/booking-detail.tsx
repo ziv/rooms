@@ -42,6 +42,7 @@ export type BookingView = {
   note: string | null;
   cancellationReason: string | null;
   cancelledAt: string | null;
+  seriesId: string | null;
 };
 
 type Props = {
@@ -56,6 +57,7 @@ export function BookingDetail({ booking, rooms, canMove, canCancel, isAdmin }: P
   const t = useTranslations("booking");
   const tc = useTranslations("calendar");
   const ta = useTranslations("app");
+  const ts = useTranslations("admin.series");
   const fmt = useSiteFormat(booking.timezone);
   const router = useRouter();
   const { run, pending } = useAction();
@@ -114,6 +116,20 @@ export function BookingDetail({ booking, rooms, canMove, canCancel, isAdmin }: P
         {canCancel && (
           <Button variant="destructive" onClick={() => setCancelOpen(true)}>
             {t("cancel")}
+          </Button>
+        )}
+        {isAdmin && booking.seriesId && booking.status === "CONFIRMED" && (
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/admin/series/${booking.seriesId}?from=${booking.localDate}`} />}
+          >
+            {ts("thisAndFollowing")}
+          </Button>
+        )}
+        {isAdmin && booking.seriesId && (
+          <Button variant="ghost" nativeButton={false} render={<Link href={`/admin/series/${booking.seriesId}`} />}>
+            {ts("seriesLink")}
           </Button>
         )}
         <Button

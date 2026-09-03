@@ -52,6 +52,7 @@ export default async function BookingPage({ params }: { params: Promise<{ locale
           note: booking.note,
           cancellationReason: booking.cancellationReason,
           cancelledAt: booking.cancelledAt?.toISOString() ?? null,
+          seriesId: booking.seriesId,
         }}
         rooms={rooms.map((r) => ({ id: r.id, roomNumber: r.roomNumber }))}
         canMove={canMove}

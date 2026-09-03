@@ -10,16 +10,34 @@ import type { Actor } from "@/modules/auth/actor";
 import { requireAdmin } from "@/modules/auth/guards";
 import { enqueue } from "@/modules/notifications/outbox";
 import { segmentsForWeekday } from "@/modules/opening-hours/service";
-import { addDays, containedIn, isOnQuarter, localToUtc, overlaps, timeToMinutes, todayLocal, type Range } from "@/lib/time";
+import {
+  addDays,
+  containedIn,
+  isOnQuarter,
+  localToUtc,
+  overlaps,
+  timeToMinutes,
+  todayLocal,
+  type Range,
+} from "@/lib/time";
 import { expandSeries, MAX_SERIES_WEEKS } from "./expand";
-import type { CancelSeriesInput, CreateSeriesInput, PreviewSeriesInput, SeriesInput, SplitSeriesInput } from "@/lib/validation/recurrence";
+import type {
+  CancelSeriesInput,
+  CreateSeriesInput,
+  PreviewSeriesInput,
+  SeriesInput,
+  SplitSeriesInput,
+} from "@/lib/validation/recurrence";
 import type { RecurrenceSeries, Site } from "@/lib/db/schema";
 
 export type OccurrencePreview = {
   date: string;
   start: string | null;
   end: string | null;
-  conflict: null | { code: "INVALID_LOCAL_TIME" | "OUTSIDE_OPENING_HOURS" | "CLOSED" | "SLOT_TAKEN"; with?: { bookingId: string; userName: string | null } };
+  conflict: null | {
+    code: "INVALID_LOCAL_TIME" | "OUTSIDE_OPENING_HOURS" | "CLOSED" | "SLOT_TAKEN";
+    with?: { bookingId: string; userName: string | null };
+  };
 };
 
 export type SeriesPreview = { occurrences: OccurrencePreview[]; conflictCount: number; freeCount: number };
@@ -27,7 +45,9 @@ export type SeriesPreview = { occurrences: OccurrencePreview[]; conflictCount: n
 async function validateSeriesInput(tx: Tx, input: SeriesInput): Promise<Site> {
   const site = await tx.query.sites.findFirst({ where: eq(schema.sites.id, input.siteId) });
   if (!site) throw notFound("site");
-  const room = await tx.query.rooms.findFirst({ where: and(eq(schema.rooms.id, input.roomId), eq(schema.rooms.siteId, input.siteId)) });
+  const room = await tx.query.rooms.findFirst({
+    where: and(eq(schema.rooms.id, input.roomId), eq(schema.rooms.siteId, input.siteId)),
+  });
   if (!room || room.status !== "ACTIVE") throw notFound("room");
   const membership = await tx.query.siteMemberships.findFirst({
     where: and(eq(schema.siteMemberships.siteId, input.siteId), eq(schema.siteMemberships.userId, input.userId)),
@@ -37,7 +57,8 @@ async function validateSeriesInput(tx: Tx, input: SeriesInput): Promise<Site> {
   const minutes = timeToMinutes(input.endTime) - timeToMinutes(input.startTime);
   if (minutes < 60 || minutes > 12 * 60) throw validation({ duration: "between 1 and 12 hours" });
   if (input.endsOn < input.startsOn) throw validation({ endsOn: "before startsOn" });
-  if (addDays(input.startsOn, MAX_SERIES_WEEKS * 7 - 1) < input.endsOn) throw validation({ endsOn: `max ${MAX_SERIES_WEEKS} weeks` });
+  if (addDays(input.startsOn, MAX_SERIES_WEEKS * 7 - 1) < input.endsOn)
+    throw validation({ endsOn: `max ${MAX_SERIES_WEEKS} weeks` });
   return site;
 }
 
@@ -47,17 +68,46 @@ async function computePreview(tx: Tx, site: Site, input: PreviewSeriesInput): Pr
   const occurrences = expandSeries({ ...input, tz });
   const segments = await segmentsForWeekday(tx, site.id, input.weekday);
   const ranges = occurrences.filter((o) => o.range).map((o) => o.range!);
-  if (ranges.length === 0) return { occurrences: occurrences.map((o) => ({ date: o.date, start: null, end: null, conflict: { code: "INVALID_LOCAL_TIME" } })), conflictCount: occurrences.length, freeCount: 0 };
+  if (ranges.length === 0)
+    return {
+      occurrences: occurrences.map((o) => ({
+        date: o.date,
+        start: null,
+        end: null,
+        conflict: { code: "INVALID_LOCAL_TIME" },
+      })),
+      conflictCount: occurrences.length,
+      freeCount: 0,
+    };
   const first = ranges[0].start;
   const last = ranges[ranges.length - 1].end;
 
   const [closures, bookings] = await Promise.all([
-    tx.query.closures.findMany({ where: and(eq(schema.closures.siteId, site.id), lt(schema.closures.startAt, last), gt(schema.closures.endAt, first)) }),
+    tx.query.closures.findMany({
+      where: and(
+        eq(schema.closures.siteId, site.id),
+        lt(schema.closures.startAt, last),
+        gt(schema.closures.endAt, first),
+      ),
+    }),
     tx
-      .select({ id: schema.bookings.id, startAt: schema.bookings.startAt, endAt: schema.bookings.endAt, seriesId: schema.bookings.seriesId, userName: schema.users.fullName })
+      .select({
+        id: schema.bookings.id,
+        startAt: schema.bookings.startAt,
+        endAt: schema.bookings.endAt,
+        seriesId: schema.bookings.seriesId,
+        userName: schema.users.fullName,
+      })
       .from(schema.bookings)
       .innerJoin(schema.users, eq(schema.users.id, schema.bookings.userId))
-      .where(and(eq(schema.bookings.roomId, input.roomId), eq(schema.bookings.status, "CONFIRMED"), lt(schema.bookings.startAt, last), gt(schema.bookings.endAt, first))),
+      .where(
+        and(
+          eq(schema.bookings.roomId, input.roomId),
+          eq(schema.bookings.status, "CONFIRMED"),
+          lt(schema.bookings.startAt, last),
+          gt(schema.bookings.endAt, first),
+        ),
+      ),
   ]);
 
   const out: OccurrencePreview[] = occurrences.map((o) => {
@@ -70,9 +120,15 @@ async function computePreview(tx: Tx, site: Site, input: PreviewSeriesInput): Pr
       return ss && se && containedIn(r, { start: ss, end: se });
     });
     if (!inSegment) return { ...base, conflict: { code: "OUTSIDE_OPENING_HOURS" } };
-    if (closures.some((c) => (!c.roomId || c.roomId === input.roomId) && overlaps(r, { start: c.startAt, end: c.endAt }))) return { ...base, conflict: { code: "CLOSED" } };
-    const clash = bookings.find((b) => b.seriesId !== input.excludeSeriesId && overlaps(r, { start: b.startAt, end: b.endAt }));
-    if (clash) return { ...base, conflict: { code: "SLOT_TAKEN", with: { bookingId: clash.id, userName: clash.userName } } };
+    if (
+      closures.some((c) => (!c.roomId || c.roomId === input.roomId) && overlaps(r, { start: c.startAt, end: c.endAt }))
+    )
+      return { ...base, conflict: { code: "CLOSED" } };
+    const clash = bookings.find(
+      (b) => b.seriesId !== input.excludeSeriesId && overlaps(r, { start: b.startAt, end: b.endAt }),
+    );
+    if (clash)
+      return { ...base, conflict: { code: "SLOT_TAKEN", with: { bookingId: clash.id, userName: clash.userName } } };
     return { ...base, conflict: null };
   });
   const conflictCount = out.filter((o) => o.conflict).length;
@@ -138,13 +194,17 @@ async function insertSeriesWithOccurrences(
   return { series, created: free.length, skipped };
 }
 
-export async function createSeries(actor: Actor, input: CreateSeriesInput): Promise<{ series: RecurrenceSeries; created: number; skipped: string[] }> {
+export async function createSeries(
+  actor: Actor,
+  input: CreateSeriesInput,
+): Promise<{ series: RecurrenceSeries; created: number; skipped: string[] }> {
   requireAdmin(actor);
   return db.transaction(async (tx) => {
     const site = await validateSeriesInput(tx, input);
     await lockRooms(tx, [input.roomId]);
     const preview = await computePreview(tx, site, input);
-    if (preview.conflictCount > 0 && !input.skipConflicts) throw new AppError("CONFLICTS", "Series has conflicts", preview);
+    if (preview.conflictCount > 0 && !input.skipConflicts)
+      throw new AppError("CONFLICTS", "Series has conflicts", preview);
     const result = await insertSeriesWithOccurrences(tx, actor, site, input, preview);
     await audit(tx, {
       actor,
@@ -154,7 +214,11 @@ export async function createSeries(actor: Actor, input: CreateSeriesInput): Prom
       entityId: result.series.id,
       after: { ...seriesSummary(result.series), created: result.created, skipped: result.skipped },
     });
-    await notifyUser(tx, input.userId, "SERIES_CREATED", { ...seriesPayload(result.series, site), created: result.created, skipped: result.skipped });
+    await notifyUser(tx, input.userId, "SERIES_CREATED", {
+      ...seriesPayload(result.series, site),
+      created: result.created,
+      skipped: result.skipped,
+    });
     return result;
   });
 }
@@ -163,7 +227,16 @@ export async function createSeries(actor: Actor, input: CreateSeriesInput): Prom
  * "This and following": ends the old series the day before `fromDate`, deletes its
  * occurrences from that date (including exceptions), and creates a new series with the changes.
  */
-export async function splitSeries(actor: Actor, input: SplitSeriesInput): Promise<{ oldSeries: RecurrenceSeries; newSeries: RecurrenceSeries; deleted: number; created: number; skipped: string[] }> {
+export async function splitSeries(
+  actor: Actor,
+  input: SplitSeriesInput,
+): Promise<{
+  oldSeries: RecurrenceSeries;
+  newSeries: RecurrenceSeries;
+  deleted: number;
+  created: number;
+  skipped: string[];
+}> {
   requireAdmin(actor);
   return db.transaction(async (tx) => {
     const old = await tx.query.recurrenceSeries.findFirst({ where: eq(schema.recurrenceSeries.id, input.seriesId) });
@@ -172,7 +245,8 @@ export async function splitSeries(actor: Actor, input: SplitSeriesInput): Promis
     if (!site) throw notFound("site");
     if (old.status !== "ACTIVE") throw validation({ status: "series is not active" });
     if (input.fromDate < todayLocal(site.timezone)) throw validation({ fromDate: "must be today or later" });
-    if (input.fromDate < old.startsOn || input.fromDate > old.endsOn) throw validation({ fromDate: "outside the series range" });
+    if (input.fromDate < old.startsOn || input.fromDate > old.endsOn)
+      throw validation({ fromDate: "outside the series range" });
 
     const newInput: SeriesInput = {
       siteId: old.siteId,
@@ -193,17 +267,29 @@ export async function splitSeries(actor: Actor, input: SplitSeriesInput): Promis
     const toDelete = await tx.query.bookings.findMany({
       where: and(eq(schema.bookings.seriesId, old.id), gte(schema.bookings.startAt, fromStart)),
     });
-    if (toDelete.length) await tx.delete(schema.bookings).where(inArray(schema.bookings.id, toDelete.map((b) => b.id)));
+    if (toDelete.length)
+      await tx.delete(schema.bookings).where(
+        inArray(
+          schema.bookings.id,
+          toDelete.map((b) => b.id),
+        ),
+      );
 
     const newEndsOn = addDays(input.fromDate, -1);
     const [oldUpdated] = await tx
       .update(schema.recurrenceSeries)
-      .set({ endsOn: newEndsOn < old.startsOn ? old.startsOn : newEndsOn, status: newEndsOn < old.startsOn ? "CANCELLED" : "ENDED", updatedBy: actor.userId, updatedAt: new Date() })
+      .set({
+        endsOn: newEndsOn < old.startsOn ? old.startsOn : newEndsOn,
+        status: newEndsOn < old.startsOn ? "CANCELLED" : "ENDED",
+        updatedBy: actor.userId,
+        updatedAt: new Date(),
+      })
       .where(eq(schema.recurrenceSeries.id, old.id))
       .returning();
 
     const preview = await computePreview(tx, site, newInput);
-    if (preview.conflictCount > 0 && !input.skipConflicts) throw new AppError("CONFLICTS", "Series has conflicts", preview);
+    if (preview.conflictCount > 0 && !input.skipConflicts)
+      throw new AppError("CONFLICTS", "Series has conflicts", preview);
     const result = await insertSeriesWithOccurrences(tx, actor, site, newInput, preview);
 
     await audit(tx, {
@@ -213,11 +299,28 @@ export async function splitSeries(actor: Actor, input: SplitSeriesInput): Promis
       entityType: "series",
       entityId: old.id,
       before: { ...seriesSummary(old), deletedOccurrences: toDelete.length },
-      after: { newSeriesId: result.series.id, ...seriesSummary(result.series), created: result.created, skipped: result.skipped },
+      after: {
+        newSeriesId: result.series.id,
+        ...seriesSummary(result.series),
+        created: result.created,
+        skipped: result.skipped,
+      },
     });
-    await notifyUser(tx, newInput.userId, "SERIES_CHANGED", { ...seriesPayload(result.series, site), fromDate: input.fromDate, created: result.created, skipped: result.skipped });
-    if (newInput.userId !== old.userId) await notifyUser(tx, old.userId, "SERIES_CANCELLED", { ...seriesPayload(old, site), fromDate: input.fromDate });
-    return { oldSeries: oldUpdated, newSeries: result.series, deleted: toDelete.length, created: result.created, skipped: result.skipped };
+    await notifyUser(tx, newInput.userId, "SERIES_CHANGED", {
+      ...seriesPayload(result.series, site),
+      fromDate: input.fromDate,
+      created: result.created,
+      skipped: result.skipped,
+    });
+    if (newInput.userId !== old.userId)
+      await notifyUser(tx, old.userId, "SERIES_CANCELLED", { ...seriesPayload(old, site), fromDate: input.fromDate });
+    return {
+      oldSeries: oldUpdated,
+      newSeries: result.series,
+      deleted: toDelete.length,
+      created: result.created,
+      skipped: result.skipped,
+    };
   });
 }
 
@@ -233,8 +336,21 @@ export async function cancelSeries(actor: Actor, input: CancelSeriesInput): Prom
     const now = new Date();
     const future = await tx
       .update(schema.bookings)
-      .set({ status: "CANCELLED", cancelledAt: now, cancelledBy: actor.userId, cancellationReason: input.reason ?? "SERIES_CANCELLED", updatedBy: actor.userId, updatedAt: now })
-      .where(and(eq(schema.bookings.seriesId, series.id), eq(schema.bookings.status, "CONFIRMED"), gte(schema.bookings.startAt, now)))
+      .set({
+        status: "CANCELLED",
+        cancelledAt: now,
+        cancelledBy: actor.userId,
+        cancellationReason: input.reason ?? "SERIES_CANCELLED",
+        updatedBy: actor.userId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(schema.bookings.seriesId, series.id),
+          eq(schema.bookings.status, "CONFIRMED"),
+          gte(schema.bookings.startAt, now),
+        ),
+      )
       .returning({ id: schema.bookings.id });
     await tx
       .update(schema.recurrenceSeries)
@@ -249,30 +365,68 @@ export async function cancelSeries(actor: Actor, input: CancelSeriesInput): Prom
       before: { status: series.status },
       after: { status: "CANCELLED", cancelledOccurrences: future.length, reason: input.reason ?? null },
     });
-    await notifyUser(tx, series.userId, "SERIES_CANCELLED", { ...seriesPayload(series, site), cancelled: future.length, reason: input.reason ?? null });
+    await notifyUser(tx, series.userId, "SERIES_CANCELLED", {
+      ...seriesPayload(series, site),
+      cancelled: future.length,
+      reason: input.reason ?? null,
+    });
     return { cancelled: future.length };
   });
 }
 
-export type SeriesRow = RecurrenceSeries & { roomNumber: string; userName: string | null; userEmail: string; siteName: string };
+export type SeriesRow = RecurrenceSeries & {
+  roomNumber: string;
+  userName: string | null;
+  userEmail: string;
+  siteName: string;
+};
 
-export async function listSeries(actor: Actor, filter: { siteId?: string; status?: RecurrenceSeries["status"] } = {}): Promise<SeriesRow[]> {
+export async function listSeries(
+  actor: Actor,
+  filter: { siteId?: string; status?: RecurrenceSeries["status"] } = {},
+): Promise<SeriesRow[]> {
   requireAdmin(actor);
   const conds = [];
   if (filter.siteId) conds.push(eq(schema.recurrenceSeries.siteId, filter.siteId));
   if (filter.status) conds.push(eq(schema.recurrenceSeries.status, filter.status));
   const rows = await db
-    .select({ series: schema.recurrenceSeries, roomNumber: schema.rooms.roomNumber, userName: schema.users.fullName, userEmail: schema.users.email, siteName: schema.sites.name })
+    .select({
+      series: schema.recurrenceSeries,
+      roomNumber: schema.rooms.roomNumber,
+      userName: schema.users.fullName,
+      userEmail: schema.users.email,
+      siteName: schema.sites.name,
+    })
     .from(schema.recurrenceSeries)
     .innerJoin(schema.rooms, eq(schema.rooms.id, schema.recurrenceSeries.roomId))
     .innerJoin(schema.users, eq(schema.users.id, schema.recurrenceSeries.userId))
     .innerJoin(schema.sites, eq(schema.sites.id, schema.recurrenceSeries.siteId))
     .where(conds.length ? and(...conds) : undefined)
     .orderBy(asc(schema.recurrenceSeries.status), desc(schema.recurrenceSeries.startsOn));
-  return rows.map((r) => ({ ...r.series, roomNumber: r.roomNumber, userName: r.userName, userEmail: r.userEmail, siteName: r.siteName }));
+  return rows.map((r) => ({
+    ...r.series,
+    roomNumber: r.roomNumber,
+    userName: r.userName,
+    userEmail: r.userEmail,
+    siteName: r.siteName,
+  }));
 }
 
-export async function getSeries(actor: Actor, seriesId: string): Promise<SeriesRow & { occurrences: { id: string; startAt: Date; endAt: Date; status: "CONFIRMED" | "CANCELLED"; isException: boolean; roomId: string }[] }> {
+export async function getSeries(
+  actor: Actor,
+  seriesId: string,
+): Promise<
+  SeriesRow & {
+    occurrences: {
+      id: string;
+      startAt: Date;
+      endAt: Date;
+      status: "CONFIRMED" | "CANCELLED";
+      isException: boolean;
+      roomId: string;
+    }[];
+  }
+> {
   requireAdmin(actor);
   const [row] = await listSeriesById(seriesId);
   if (!row) throw notFound("series");
@@ -286,13 +440,25 @@ export async function getSeries(actor: Actor, seriesId: string): Promise<SeriesR
 
 async function listSeriesById(id: string): Promise<SeriesRow[]> {
   const rows = await db
-    .select({ series: schema.recurrenceSeries, roomNumber: schema.rooms.roomNumber, userName: schema.users.fullName, userEmail: schema.users.email, siteName: schema.sites.name })
+    .select({
+      series: schema.recurrenceSeries,
+      roomNumber: schema.rooms.roomNumber,
+      userName: schema.users.fullName,
+      userEmail: schema.users.email,
+      siteName: schema.sites.name,
+    })
     .from(schema.recurrenceSeries)
     .innerJoin(schema.rooms, eq(schema.rooms.id, schema.recurrenceSeries.roomId))
     .innerJoin(schema.users, eq(schema.users.id, schema.recurrenceSeries.userId))
     .innerJoin(schema.sites, eq(schema.sites.id, schema.recurrenceSeries.siteId))
     .where(eq(schema.recurrenceSeries.id, id));
-  return rows.map((r) => ({ ...r.series, roomNumber: r.roomNumber, userName: r.userName, userEmail: r.userEmail, siteName: r.siteName }));
+  return rows.map((r) => ({
+    ...r.series,
+    roomNumber: r.roomNumber,
+    userName: r.userName,
+    userEmail: r.userEmail,
+    siteName: r.siteName,
+  }));
 }
 
 const seriesSummary = (s: RecurrenceSeries) => ({
@@ -319,7 +485,12 @@ const seriesPayload = (s: RecurrenceSeries, site: Site) => ({
   endsOn: s.endsOn,
 });
 
-async function notifyUser(tx: Tx, userId: string, type: "SERIES_CREATED" | "SERIES_CHANGED" | "SERIES_CANCELLED", payload: Record<string, unknown>) {
+async function notifyUser(
+  tx: Tx,
+  userId: string,
+  type: "SERIES_CREATED" | "SERIES_CHANGED" | "SERIES_CANCELLED",
+  payload: Record<string, unknown>,
+) {
   const user = await tx.query.users.findFirst({ where: eq(schema.users.id, userId) });
   if (user) await enqueue(tx, { userId: user.id, locale: user.preferredLocale, type, payload });
 }

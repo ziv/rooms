@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { runAction } from "@/lib/action";
+import { flushAfterResponse } from "@/modules/notifications/after";
 import { requireUser } from "@/modules/auth/current";
 import {
   availabilityQuerySchema,
@@ -19,6 +20,7 @@ export async function createBookingAction(raw: unknown) {
     const actor = await requireUser();
     const b = await createBooking(actor, createBookingSchema.parse(raw));
     revalidatePath("/", "layout");
+    flushAfterResponse();
     return { id: b.id, startAt: b.startAt.toISOString(), endAt: b.endAt.toISOString() };
   });
 }
@@ -28,6 +30,7 @@ export async function moveBookingAction(raw: unknown) {
     const actor = await requireUser();
     const b = await moveBooking(actor, moveBookingSchema.parse(raw));
     revalidatePath("/", "layout");
+    flushAfterResponse();
     return { id: b.id, startAt: b.startAt.toISOString(), endAt: b.endAt.toISOString(), roomId: b.roomId };
   });
 }
@@ -37,6 +40,7 @@ export async function cancelBookingAction(raw: unknown) {
     const actor = await requireUser();
     const b = await cancelBooking(actor, cancelBookingSchema.parse(raw));
     revalidatePath("/", "layout");
+    flushAfterResponse();
     return { id: b.id, status: b.status };
   });
 }

@@ -68,7 +68,8 @@ try {
   await p2.waitForSelector("[role=tablist]");
   await p2.locator("li:visible", { hasText: "תפוס" }).first().waitFor();
   const html = await p2.content();
-  for (const needle of ["מטפל אחד", "סודי-XYZ-987"]) if (html.includes(needle)) errors.push(`PRIVACY LEAK: therapist 2 page contains "${needle}"`);
+  for (const needle of ["מטפל אחד", "סודי-XYZ-987"])
+    if (html.includes(needle)) errors.push(`PRIVACY LEAK: therapist 2 page contains "${needle}"`);
   await p2.screenshot({ path: `${out}/05-mobile-busy.png`, fullPage: true });
   const freeRow = p2.locator("li", { hasText: "פנוי" }).filter({ hasText: "11:00" }).first();
   await freeRow.getByRole("combobox").click();

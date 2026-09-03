@@ -18,7 +18,9 @@
     "test": "vitest run tests/unit",
     "test:int": "vitest run tests/integration --no-file-parallelism",
     "test:watch": "vitest tests/unit",
-    "supabase:config:push": "./scripts/supabase-config-push.sh"
+    "supabase:config:push": "./scripts/supabase-config-push.sh",
+    "test:e2e": "playwright test",
+    "smoke": "node scripts/smoke-m0.mjs && node scripts/smoke-m1.mjs && node scripts/smoke-m2.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -4,11 +4,15 @@ import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, dirFor } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/sonner";
+import { Pwa } from "@/components/layout/pwa";
 
 export const metadata: Metadata = {
-  title: "Rooms",
+  title: { default: "Rooms", template: "%s · Rooms" },
   description: "Therapy room scheduler",
+  appleWebApp: { capable: true, title: "Rooms", statusBarStyle: "default" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
+export const viewport = { themeColor: "#111111", width: "device-width", initialScale: 1 };
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -29,6 +33,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <NextIntlClientProvider>
           {children}
+          <Pwa />
           <Toaster position={dirFor(locale) === "rtl" ? "top-left" : "top-right"} richColors />
         </NextIntlClientProvider>
       </body>
