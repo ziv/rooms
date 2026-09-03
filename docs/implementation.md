@@ -131,7 +131,8 @@ supabase start          # Postgres על 54322, Auth על 54321, Mailpit על 543
 - **Supabase בענן** (3.9.2026): פרויקט `rooms` (`adfbyvarfsfplfdjorgt`, eu-central-1, תוכנית חינמית) מקושר (`supabase link`), migrations ו-seed הורצו. חיבור מסד: דרך ה-pooler `aws-0-eu-central-1.pooler.supabase.com` (5432 ל-migrations, 6543 לאפליקציה); החיבור הישיר הוא IPv6 בלבד. סודות מקומיים ב-`.env.supabase` (gitignored): `SUPABASE_DB_PASSWORD`, `GOOGLE_CLIENT_ID/SECRET`. `pnpm supabase:config:push` דוחף הגדרות Auth.
 - **Google OAuth** מוגדר מקומית (`[auth.external.google]` עם `env(...)`) ובענן. מסך ההסכמה במצב Testing; לפני פיילוט רחב: קישורי פרטיות/תנאים על הדומיין ו-Publish.
 - **תבניות דוא״ל בענן:** התוכנית החינמית לא מאפשרת תבניות מותאמות ללא SMTP מותאם. עד להגדרת Resend (M3) ההתחברות בענן היא בקישור (magic link); האפליקציה תומכת גם בקוד וגם בקישור (`emailRedirectTo` → `/api/auth/callback`).
-- טרם בוצע: Vercel, Sentry DSN, דומיין.
+- **Vercel** (3.9.2026): פרויקט `rooms` בצוות `zivs-projects-1f56dd63`, מחובר ל-GitHub `ziv/rooms` (deploy אוטומטי ב-push ל-main). Production: https://rooms-ruby.vercel.app. משתני הסביבה הוגדרו דרך `vercel env`; `DATABASE_URL` דרך ה-pooler בפורט 6543 עם `sslmode=require`. ה-site_url וה-redirects של Supabase בענן מוגדרים ב-`[remotes.rooms.auth]` ונדחפים עם `pnpm supabase:config:push`.
+- טרם בוצע: Sentry DSN, דומיין, Resend.
 
 **תוצר M0:** התחברות ב-Google ובדוא״ל, onboarding, אישור מטפל בידי מנהל, ניהול חדרים והגדרות, ביקורת בסיסית. פריסה ל-Vercel Preview מול `rooms-dev`.
 

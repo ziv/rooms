@@ -433,6 +433,5 @@ enabled = true
 project_id = "adfbyvarfsfplfdjorgt"
 
 [remotes.rooms.auth]
-# TODO: replace with the Vercel/production URL once it exists
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000/api/auth/callback"]
+site_url = "https://rooms-ruby.vercel.app"
+additional_redirect_urls = ["https://rooms-ruby.vercel.app/**", "https://*-zivs-projects-1f56dd63.vercel.app/**"]
