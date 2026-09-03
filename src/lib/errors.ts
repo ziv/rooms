@@ -16,6 +16,7 @@ export const ERROR_CODES = [
   "ROOM_HAS_FUTURE_BOOKINGS",
   "CUTOFF_PASSED",
   "ALREADY_EXISTS",
+  "LAST_ADMIN",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -38,6 +39,7 @@ const STATUS: Record<ErrorCode, number> = {
   ROOM_HAS_FUTURE_BOOKINGS: 409,
   CUTOFF_PASSED: 422,
   ALREADY_EXISTS: 409,
+  LAST_ADMIN: 409,
 };
 
 export class AppError extends Error {

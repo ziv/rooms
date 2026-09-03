@@ -47,10 +47,6 @@ export const users = pgTable(
   (t) => [
     uniqueIndex("users_email_unique").on(t.email),
     check("users_locale_check", sql`${t.preferredLocale} in ('he', 'en')`),
-    // exactly one super admin (partial unique index on a constant expression)
-    uniqueIndex("users_single_super_admin")
-      .on(sql`(true)`)
-      .where(sql`${t.globalRole} = 'SUPER_ADMIN'`),
   ],
 );
 

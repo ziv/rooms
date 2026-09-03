@@ -198,8 +198,8 @@ describe("database constraints", () => {
     await mk(t0, new Date(t0.getTime() + 3600e3), "CANCELLED");
   });
 
-  it("allows only one SUPER_ADMIN", async () => {
+  it("allows several SUPER_ADMIN users (managers can promote others)", async () => {
     await makeUser({ role: "SUPER_ADMIN" });
-    await expect(makeUser({ role: "SUPER_ADMIN" }).catch((e) => Promise.reject(pgErrorCode(e)))).rejects.toBe("23505");
+    await expect(makeUser({ role: "SUPER_ADMIN" })).resolves.toMatchObject({ globalRole: "SUPER_ADMIN" });
   });
 });

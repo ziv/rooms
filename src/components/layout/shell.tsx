@@ -33,6 +33,7 @@ export async function Shell({ actor, sites, currentSiteId, children }: Props) {
             <div className="mx-auto max-w-6xl px-4 h-10 flex items-center gap-4 text-sm overflow-x-auto">
               <Link href="/admin/dashboard">{t("dashboard")}</Link>
               <Link href="/admin/members">{t("members")}</Link>
+              <Link href="/admin/users">{t("users")}</Link>
               <Link href="/admin/rooms">{t("rooms")}</Link>
               <Link href="/admin/hours">{t("hours")}</Link>
               <Link href="/admin/closures">{t("closures")}</Link>

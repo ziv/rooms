@@ -6,6 +6,8 @@ import { requireAdmin } from "@/modules/auth/guards";
 
 export type AuditAction =
   | "ROLE_GRANTED"
+  | "ROLE_REVOKED"
+  | "USER_INVITED"
   | "MEMBERSHIP_REQUESTED"
   | "MEMBERSHIP_DECIDED"
   | "SITE_UPDATED"

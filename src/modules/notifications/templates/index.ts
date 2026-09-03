@@ -72,6 +72,16 @@ const L = {
       body: "{userName} ביטל/ה את המופע הבא:",
       cta: "לפרטי ההזמנה",
     },
+    USER_INVITED: {
+      subject: "נפתח לך חשבון במערכת תיאום החדרים",
+      title: "נפתח לך חשבון",
+      body: "{inviterName} פתח/ה לך חשבון במערכת תיאום החדרים{siteText}. להתחברות: היכנס/י לכתובת למטה עם כתובת הדוא״ל הזו (קוד בדוא״ל) או עם חשבון Google באותה כתובת.",
+      cta: "כניסה למערכת",
+    },
+    ROLE_CHANGED: { subject: "עדכון הרשאות", title: "ההרשאות שלך עודכנו", body: "{roleText}", cta: "כניסה למערכת" },
+    roleAdmin: "מונית/ה למנהל/ת במערכת תיאום החדרים. כעת יש לך גישה לכל המתחמים, לניהול המטפלים ולדוחות.",
+    roleTherapist: "הרשאת הניהול שלך הוסרה. החשבון ממשיך לפעול כמטפל/ת.",
+    sitesText: " ואושר/ה במתחמים: {sites}",
     status: { APPROVED: "מאושר", REJECTED: "נדחה", SUSPENDED: "מושעה", PENDING: "ממתין" },
     reason: "סיבה: {reason}",
     skipped: "מופעים שדולגו עקב התנגשות: {dates}.",
@@ -145,6 +155,22 @@ const L = {
       body: "{userName} cancelled the following occurrence:",
       cta: "Open booking",
     },
+    USER_INVITED: {
+      subject: "An account was created for you",
+      title: "An account was created for you",
+      body: "{inviterName} created an account for you in the room scheduler{siteText}. To sign in, open the link below with this email address (a code is emailed) or with a Google account on the same address.",
+      cta: "Sign in",
+    },
+    ROLE_CHANGED: {
+      subject: "Your permissions were updated",
+      title: "Your permissions were updated",
+      body: "{roleText}",
+      cta: "Sign in",
+    },
+    roleAdmin:
+      "You were made a manager of the room scheduler. You now have access to all sites, therapist management and reports.",
+    roleTherapist: "Your manager permission was removed. Your account continues as a therapist.",
+    sitesText: " and approved at: {sites}",
     status: { APPROVED: "approved", REJECTED: "rejected", SUSPENDED: "suspended", PENDING: "pending" },
     reason: "Reason: {reason}",
     skipped: "Occurrences skipped due to conflicts: {dates}.",
@@ -196,13 +222,15 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
   const body = fill(tpl.body, vars);
   const hasBooking = typeof payload.startAt === "string" && typeof payload.roomNumber !== "undefined";
   const link =
-    type === "MEMBERSHIP_REQUESTED"
-      ? `${appUrl}/${lang}/admin/members?status=PENDING`
-      : typeof payload.bookingId === "string"
-        ? `${appUrl}/${lang}/bookings/${payload.bookingId}`
-        : type.startsWith("SERIES")
-          ? `${appUrl}/${lang}/bookings`
-          : `${appUrl}/${lang}/calendar`;
+    type === "USER_INVITED" || type === "ROLE_CHANGED"
+      ? `${appUrl}/${lang}/login`
+      : type === "MEMBERSHIP_REQUESTED"
+        ? `${appUrl}/${lang}/admin/members?status=PENDING`
+        : typeof payload.bookingId === "string"
+          ? `${appUrl}/${lang}/bookings/${payload.bookingId}`
+          : type.startsWith("SERIES")
+            ? `${appUrl}/${lang}/bookings`
+            : `${appUrl}/${lang}/calendar`;
 
   const detailRows = hasBooking
     ? [

@@ -30,7 +30,8 @@
     "audit": "Audit log",
     "signOut": "Sign out",
     "site": "Site",
-    "language": "Language"
+    "language": "Language",
+    "users": "Users"
   },
   "login": {
     "title": "Sign in",
@@ -284,6 +285,36 @@
       "note": "Note",
       "more": "More",
       "totalAll": "Total"
+    },
+    "users": {
+      "title": "Users",
+      "add": "Add user",
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "roleSUPER_ADMIN": "Manager",
+      "roleTHERAPIST": "Therapist",
+      "status": "Status",
+      "statusACTIVE": "Active",
+      "statusDISABLED": "Disabled",
+      "sites": "Sites",
+      "promote": "Make manager",
+      "demote": "Remove manager",
+      "promoteConfirm": "Make {name} a manager? They get full access to all sites, therapist management and reports.",
+      "demoteConfirm": "Remove manager permission from {name}?",
+      "lastAdmin": "The last manager cannot be removed",
+      "roleUpdated": "Role updated",
+      "addTitle": "Add user",
+      "addHint": "The account is created immediately, the selected sites are approved, and the person gets an email explaining how to sign in (email code or Google).",
+      "language": "Language",
+      "approveAt": "Approve at sites",
+      "asManager": "Add as manager",
+      "create": "Create account",
+      "created": "Account created and email sent",
+      "existed": "The account already existed; sites approved and email sent",
+      "empty": "No users",
+      "you": "(you)",
+      "noName": "(no name)"
     }
   },
   "legal": {
@@ -308,7 +339,8 @@
     "CONFLICTS": "There are conflicts",
     "ROOM_HAS_FUTURE_BOOKINGS": "The room has future bookings",
     "CUTOFF_PASSED": "The change deadline has passed",
-    "ALREADY_EXISTS": "Already exists"
+    "ALREADY_EXISTS": "Already exists",
+    "LAST_ADMIN": "The last manager cannot be removed"
   },
   "weekdays": {
     "0": "Sunday",

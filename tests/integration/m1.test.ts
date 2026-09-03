@@ -116,16 +116,14 @@ describe("availability DTO (AC-01, AC-02)", () => {
     const { site, room1, t1, t2, a, date, at } = await setup();
     await makeBooking({ siteId: site.id, roomId: room1.id, userId: t2.id, startAt: at("10:00") });
     const mine = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t1.id, startAt: at("11:00") });
-    await db
-      .insert(schema.closures)
-      .values({
-        siteId: site.id,
-        roomId: null,
-        startAt: at("13:00"),
-        endAt: at("14:00"),
-        reason: "secret",
-        createdBy: t1.id,
-      });
+    await db.insert(schema.closures).values({
+      siteId: site.id,
+      roomId: null,
+      startAt: at("13:00"),
+      endAt: at("14:00"),
+      reason: "secret",
+      createdBy: t1.id,
+    });
 
     const forT1 = await getDayAvailability(a.t1, { siteId: site.id, date });
     const room = forT1.rooms.find((r) => r.roomId === room1.id)!;

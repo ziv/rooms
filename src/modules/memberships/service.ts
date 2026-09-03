@@ -7,7 +7,7 @@ import type { Actor } from "@/modules/auth/actor";
 import { requireAdmin } from "@/modules/auth/guards";
 import type { DecideMembershipInput } from "@/lib/validation/memberships";
 import type { SiteMembership, MembershipStatus } from "@/lib/db/schema";
-import { enqueue, superAdminRecipient } from "@/modules/notifications/outbox";
+import { enqueue, enqueueForAdmins } from "@/modules/notifications/outbox";
 
 export async function listForUser(userId: string): Promise<SiteMembership[]> {
   return db.query.siteMemberships.findMany({ where: eq(schema.siteMemberships.userId, userId) });
@@ -46,21 +46,13 @@ export async function requestMembership(actor: Actor, siteId: string): Promise<S
       before: existing ? { status: existing.status } : null,
       after: { status: row.status },
     });
-    const admin = await superAdminRecipient(tx);
-    if (admin) {
-      await enqueue(tx, {
-        userId: admin.userId,
-        locale: admin.locale,
-        type: "MEMBERSHIP_REQUESTED",
-        payload: {
-          siteId: site.id,
-          siteName: site.name,
-          userId: actor.userId,
-          userName: actor.fullName,
-          userEmail: actor.email,
-        },
-      });
-    }
+    await enqueueForAdmins(tx, "MEMBERSHIP_REQUESTED", {
+      siteId: site.id,
+      siteName: site.name,
+      userId: actor.userId,
+      userName: actor.fullName,
+      userEmail: actor.email,
+    });
     return row;
   });
 }

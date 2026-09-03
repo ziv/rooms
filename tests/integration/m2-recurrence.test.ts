@@ -89,15 +89,13 @@ describe("series", () => {
     // clash on occurrence #2 (10:00-11:00 by t2) and a closure on #3
     const occ2 = localToUtc(addDays(startsOn, 7), "10:00", TZ)!;
     const clash = await makeBooking({ siteId: site.id, roomId: room1.id, userId: t2.id, startAt: occ2 });
-    await db
-      .insert(schema.closures)
-      .values({
-        siteId: site.id,
-        roomId: null,
-        startAt: localToUtc(addDays(startsOn, 14), "00:00", TZ)!,
-        endAt: localToUtc(addDays(startsOn, 15), "00:00", TZ)!,
-        createdBy: t2.id,
-      });
+    await db.insert(schema.closures).values({
+      siteId: site.id,
+      roomId: null,
+      startAt: localToUtc(addDays(startsOn, 14), "00:00", TZ)!,
+      endAt: localToUtc(addDays(startsOn, 15), "00:00", TZ)!,
+      createdBy: t2.id,
+    });
 
     const preview = await previewSeries(a.admin, base);
     expect(preview.conflictCount).toBe(2);

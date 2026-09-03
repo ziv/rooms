@@ -8,7 +8,7 @@ import { AppError, notFound, forbidden, validation } from "@/lib/errors";
 import { audit } from "@/modules/audit/service";
 import { isAdmin, type Actor } from "@/modules/auth/actor";
 import { requireAdmin } from "@/modules/auth/guards";
-import { enqueue, superAdminRecipient } from "@/modules/notifications/outbox";
+import { enqueue, enqueueForAdmins } from "@/modules/notifications/outbox";
 import { addMinutes, REGULAR_BOOKING_MINUTES } from "@/lib/time";
 import { assertBookable } from "./validate";
 import type { CancelBookingInput, CreateBookingInput, MoveBookingInput } from "@/lib/validation/bookings";
@@ -247,15 +247,11 @@ export async function cancelBooking(actor: Actor, input: CancelBookingInput): Pr
         });
       }
     } else if (current.bookingType === "SERIES") {
-      const admin = await superAdminRecipient(tx);
-      if (admin) {
-        await enqueue(tx, {
-          userId: admin.userId,
-          locale: admin.locale,
-          type: "OCCURRENCE_CANCELLED_BY_THERAPIST",
-          payload: { ...bookingPayload(updated, site, roomNumber), userName: actor.fullName, userId: actor.userId },
-        });
-      }
+      await enqueueForAdmins(tx, "OCCURRENCE_CANCELLED_BY_THERAPIST", {
+        ...bookingPayload(updated, site, roomNumber),
+        userName: actor.fullName,
+        userId: actor.userId,
+      });
     }
     return updated;
   });

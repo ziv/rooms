@@ -36,15 +36,9 @@ Outbox table `notifications`. Sent immediately after each action (`after()`), re
 - Retry after fixing the cause: `update notifications set attempts = 0 where status = 'FAILED';`
 - Cron history: `select * from cron.job_run_details order by start_time desc limit 20;`
 
-## Super admin
+## Managers
 
-Granted automatically to `SUPER_ADMIN_EMAIL` on login (also promotes an existing user). To transfer:
-
-```sql
-update users set global_role = 'THERAPIST' where global_role = 'SUPER_ADMIN';
-update users set global_role = 'SUPER_ADMIN' where email = 'new@example.com';
-```
-and change `SUPER_ADMIN_EMAIL` in Vercel.
+The first manager is granted automatically to `SUPER_ADMIN_EMAIL` on login. After that, managers promote or demote other users in the app (Admin → Users). The last active manager cannot be demoted. Managers can also add users directly (Admin → Users → Add user): the account is created at once, the chosen sites are approved, and the person receives an email with sign-in instructions.
 
 ## Common tasks
 

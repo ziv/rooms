@@ -263,7 +263,7 @@ try {
       await pa.waitForSelector(`tr:has-text("${email}")`, { state: "detached" });
     }
   });
-} catch (e) {
+} catch {
   for (const [n, p] of [["admin", pa], ["t1", p1], ["t2", p2]]) await shot(p, `99-fail-${n}`).catch(() => {});
 } finally {
   await browser.close();
