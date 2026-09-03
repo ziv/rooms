@@ -13,11 +13,12 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "db:reset": "pnpm supabase db reset && pnpm db:migrate && pnpm db:seed",
-    "supabase:start": "supabase start",
+    "supabase:start": "sh -c 'set -a; [ -f .env.supabase ] && . ./.env.supabase; set +a; supabase start'",
     "supabase:stop": "supabase stop",
     "test": "vitest run tests/unit",
     "test:int": "vitest run tests/integration --no-file-parallelism",
-    "test:watch": "vitest tests/unit"
+    "test:watch": "vitest tests/unit",
+    "supabase:config:push": "sh -c 'set -a; . ./.env.supabase; set +a; supabase config push'"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

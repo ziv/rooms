@@ -39,7 +39,7 @@
     "emailLabel": "כתובת דוא״ל",
     "emailPlaceholder": "name@example.com",
     "sendCode": "שלח קוד התחברות",
-    "codeSentTo": "שלחנו קוד בן 6 ספרות אל {email}",
+    "codeSentTo": "שלחנו קוד בן 6 ספרות (או קישור התחברות) אל {email}",
     "codeLabel": "קוד ההתחברות",
     "verify": "התחבר",
     "changeEmail": "כתובת אחרת",
@@ -77,7 +77,10 @@
     "memberships": "חברויות במתחמים",
     "requestMore": "בקש הצטרפות למתחם נוסף"
   },
-  "locale": { "he": "עברית", "en": "English" },
+  "locale": {
+    "he": "עברית",
+    "en": "English"
+  },
   "calendar": {
     "title": "יומן",
     "placeholder": "היומן ייבנה באבן הדרך הבאה (M1)."

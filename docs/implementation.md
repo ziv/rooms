@@ -128,7 +128,10 @@ supabase start          # Postgres על 54322, Auth על 54321, Mailpit על 543
 - `ensureUser` מקדם גם משתמש קיים ל-SUPER_ADMIN אם הדוא״ל הוגדר אחרי ההתחברות הראשונה.
 - Drizzle עוטף שגיאות Postgres; קוד SQLSTATE נקרא דרך `pgErrorCode()` ב-`src/lib/db/errors.ts`.
 - סקריפט עשן בדפדפן: `scripts/smoke-m0.mjs` (Playwright) מכסה מנהל + מטפל.
-- טרם בוצע (דורש חשבונות): Google OAuth, פרויקט Supabase בענן, Vercel, Sentry DSN.
+- **Supabase בענן** (3.9.2026): פרויקט `rooms` (`adfbyvarfsfplfdjorgt`, eu-central-1, תוכנית חינמית) מקושר (`supabase link`), migrations ו-seed הורצו. חיבור מסד: דרך ה-pooler `aws-0-eu-central-1.pooler.supabase.com` (5432 ל-migrations, 6543 לאפליקציה); החיבור הישיר הוא IPv6 בלבד. סודות מקומיים ב-`.env.supabase` (gitignored): `SUPABASE_DB_PASSWORD`, `GOOGLE_CLIENT_ID/SECRET`. `pnpm supabase:config:push` דוחף הגדרות Auth.
+- **Google OAuth** מוגדר מקומית (`[auth.external.google]` עם `env(...)`) ובענן. מסך ההסכמה במצב Testing; לפני פיילוט רחב: קישורי פרטיות/תנאים על הדומיין ו-Publish.
+- **תבניות דוא״ל בענן:** התוכנית החינמית לא מאפשרת תבניות מותאמות ללא SMTP מותאם. עד להגדרת Resend (M3) ההתחברות בענן היא בקישור (magic link); האפליקציה תומכת גם בקוד וגם בקישור (`emailRedirectTo` → `/api/auth/callback`).
+- טרם בוצע: Vercel, Sentry DSN, דומיין.
 
 **תוצר M0:** התחברות ב-Google ובדוא״ל, onboarding, אישור מטפל בידי מנהל, ניהול חדרים והגדרות, ביקורת בסיסית. פריסה ל-Vercel Preview מול `rooms-dev`.
 

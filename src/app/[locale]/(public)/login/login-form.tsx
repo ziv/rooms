@@ -38,7 +38,10 @@ export function LoginForm({ next, locale, initialError }: Props) {
         return;
       }
       const supabase = supabaseBrowser();
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      // The email carries a 6-digit code (custom template) and/or a magic link (default template);
+      // both are accepted: the link lands on /api/auth/callback with a PKCE code.
+      const emailRedirectTo = `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}&locale=${locale}`;
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo } });
       if (error) setError(t("error"));
       else setStep("code");
     });

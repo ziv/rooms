@@ -39,7 +39,7 @@
     "emailLabel": "Email address",
     "emailPlaceholder": "name@example.com",
     "sendCode": "Send sign-in code",
-    "codeSentTo": "We sent a 6-digit code to {email}",
+    "codeSentTo": "We sent a 6-digit code (or a sign-in link) to {email}",
     "codeLabel": "Sign-in code",
     "verify": "Sign in",
     "changeEmail": "Use another address",
@@ -77,7 +77,10 @@
     "memberships": "Site memberships",
     "requestMore": "Request to join another site"
   },
-  "locale": { "he": "עברית", "en": "English" },
+  "locale": {
+    "he": "עברית",
+    "en": "English"
+  },
   "calendar": {
     "title": "Calendar",
     "placeholder": "The calendar is built in the next milestone (M1)."
