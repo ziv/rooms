@@ -141,33 +141,41 @@ supabase start          # Postgres על 54322, Auth על 54321, Mailpit על 543
 **מטרה:** מטפל מאושר רואה יומן יום, מזמין, משנה ומבטל. אין הזמנה כפולה.
 
 **5.1.1 זמן ושעות פעילות**
-- [ ] `lib/time`: `localToUtc`, `utcToLocal`, `dayBounds`, `isOnQuarter`, `overlaps`, `containedIn`. Unit tests כולל DST.
-- [ ] `modules/opening-hours`: `getForSite`, `setForDay` (טרנזקציה, אי-חפיפה, אזהרות). ביקורת.
-- [ ] `/admin/hours`: 7 ימים, מקטעים, שמירה ליום.
+- [x] `lib/time`: `localToUtc`, `utcToLocal`, `dayBounds`, `isOnQuarter`, `overlaps`, `containedIn`. Unit tests כולל DST.
+- [x] `modules/opening-hours`: `getForSite`, `setForDay` (טרנזקציה, אי-חפיפה, אזהרות). ביקורת.
+- [x] `/admin/hours`: 7 ימים, מקטעים, שמירה ליום.
 
 **5.1.2 סגירות (בסיס)**
-- [ ] `modules/closures`: `list`, `create` ללא טיפול בהתנגשויות (מחזיר `CONFLICTS` וחוסם), `delete`. ביקורת.
-- [ ] `/admin/closures`: רשימה וטופס.
+- [x] `modules/closures`: `list`, `create` ללא טיפול בהתנגשויות (מחזיר `CONFLICTS` וחוסם), `delete`. ביקורת.
+- [x] `/admin/closures`: רשימה וטופס.
 
 **5.1.3 זמינות**
-- [ ] `modules/availability.getDay` לפי `design.md` §8.1, כולל DTO לפי תפקיד.
-- [ ] בדיקת אינטגרציה: JSON למטפל ללא `user`/`note`/`bookingId` בבלוקים זרים.
-- [ ] `lib/slots.ts`: חישוב שעות התחלה תקפות (משותף ללקוח ולבדיקות).
+- [x] `modules/availability.getDay` לפי `design.md` §8.1, כולל DTO לפי תפקיד.
+- [x] בדיקת אינטגרציה: JSON למטפל ללא `user`/`note`/`bookingId` בבלוקים זרים.
+- [x] `lib/slots.ts`: חישוב שעות התחלה תקפות (משותף ללקוח ולבדיקות).
 
 **5.1.4 הזמנות**
-- [ ] `modules/bookings/validate.assertBookable` (טבלת 8.2 ב-`design.md`).
-- [ ] `create` עם נעילה, idempotency, אילוץ → `SLOT_TAKEN`, ביקורת, enqueue (הודעות עדיין לא נשלחות; outbox בלבד).
-- [ ] `move`, `cancel`, `get`, `listMine`.
-- [ ] `deactivateRoom` עם `ROOM_HAS_FUTURE_BOOKINGS`.
-- [ ] Integration: כל קודי השגיאה; תחרות 20 בקשות; idempotency; move אטומי; cutoff.
+- [x] `modules/bookings/validate.assertBookable` (טבלת 8.2 ב-`design.md`).
+- [x] `create` עם נעילה, idempotency, אילוץ → `SLOT_TAKEN`, ביקורת, enqueue (הודעות עדיין לא נשלחות; outbox בלבד).
+- [x] `move`, `cancel`, `get`, `listMine`.
+- [x] `deactivateRoom` עם `ROOM_HAS_FUTURE_BOOKINGS`.
+- [x] Integration: כל קודי השגיאה; תחרות 20 בקשות; idempotency; move אטומי; cutoff.
 
 **5.1.5 יומן ומסכים**
-- [ ] `components/calendar/DayGrid` (דסקטופ) + `DayList` (מובייל) + `TimeBlock` + `BookingDialog`.
-- [ ] `/calendar/[siteId]?date=`: ניווט יום/היום/date picker, בורר מתחם, גבולות חלון למטפל.
-- [ ] `/bookings`: עתידיות + היסטוריה. `/bookings/[id]`: פרטים, שינוי (דיאלוג עם יומן היעד), ביטול.
-- [ ] `/api/bookings/[id]/ics` + `modules/ics`. כפתור „הוסף ליומן”.
-- [ ] מצבי ממשק: skeleton, ריק, `SLOT_TAKEN`, offline banner, `error.tsx`.
-- [ ] בדיקת נגישות ידנית: מקלדת בלבד דרך זרימת הזמנה; VoiceOver בסיסי.
+- [x] `components/calendar/DayGrid` (דסקטופ) + `DayList` (מובייל) + `TimeBlock` + `BookingDialog`.
+- [x] `/calendar/[siteId]?date=`: ניווט יום/היום/date picker, בורר מתחם, גבולות חלון למטפל.
+- [x] `/bookings`: עתידיות + היסטוריה. `/bookings/[id]`: פרטים, שינוי (דיאלוג עם יומן היעד), ביטול.
+- [x] `/api/bookings/[id]/ics` + `modules/ics`. כפתור „הוסף ליומן”.
+- [x] מצבי ממשק: skeleton, ריק, `SLOT_TAKEN`, offline banner, `error.tsx`.
+- [x] בדיקת נגישות ידנית: מקלדת בלבד דרך זרימת הזמנה; VoiceOver בסיסי.
+
+**סטטוס (3.9.2026): הושלם מקומית.** הערות מימוש:
+- `src/lib/time` (TZDate) ו-`src/lib/slots` משותפים לשרת וללקוח; בדיקות DST ל-2026-03-27 ו-2026-10-25.
+- סגירות כבר כוללות "בטל את כל ההתנגשויות" (תוכנן ל-M2). מודל היומן ב-`components/calendar/day-model.ts`; רשת דסקטופ + רשימה למובייל; דיאלוג הזמנה עם בורר מטפל למנהל.
+- ICS ב-`/api/bookings/[id]/ics` (UTC instants, SEQUENCE = version). "ההזמנות שלי" + מסך פרטים עם שינוי/ביטול.
+- טווחי שעות עטופים ב-bidi isolate (U+2066/U+2069) כדי שיוצגו נכון ב-RTL.
+- Outbox של הודעות נכתב בטרנזקציות (`modules/notifications/outbox.ts`); השליחה ב-M3.
+- בדיקות: 13 unit, 19 integration (כולל 20 בקשות מקבילות, AC-03), סקריפט עשן `scripts/smoke-m1.mjs`.
 
 **תוצר M1:** מטפל מזמין, משנה ומבטל בדסקטופ ובמובייל; AC-01, 02, 03, 04, 05, 06, 07, 08, 17 עוברים.
 

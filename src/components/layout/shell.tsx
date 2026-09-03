@@ -34,6 +34,8 @@ export async function Shell({ actor, sites, currentSiteId, children }: Props) {
               <Link href="/admin/dashboard">{t("dashboard")}</Link>
               <Link href="/admin/members">{t("members")}</Link>
               <Link href="/admin/rooms">{t("rooms")}</Link>
+              <Link href="/admin/hours">{t("hours")}</Link>
+              <Link href="/admin/closures">{t("closures")}</Link>
               <Link href="/admin/settings">{t("settings")}</Link>
             </div>
           </div>

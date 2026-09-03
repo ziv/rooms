@@ -36,7 +36,7 @@ export default async function PendingPage({ params }: { params: Promise<{ locale
           }))}
         />
         {hasAccess && (
-          <Button className="w-full" render={<Link href="/calendar" />}>
+          <Button className="w-full" nativeButton={false} render={<Link href="/calendar" />}>
             {t("goToCalendar")}
           </Button>
         )}
