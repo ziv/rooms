@@ -274,7 +274,7 @@ $$);
 - [x] 3–5 מטפלים במתחם הראשון לשבועיים. איסוף תקלות ותיקונים.
 - [x] פתיחת המתחם השני.
 
-**סטטוס (3.9.2026): הושלם חלקית.** E2E: סקריפטי `scripts/smoke-m{0,1,2}.mjs` (Playwright) + `tests/e2e/smoke.spec.ts`; ייצור: migrations, seed דמה, Google OAuth, SMTP, pg_cron, Sentry DSN, `docs/ops.md`. **ממתין לבעלים:** נתוני מתחמים אמיתיים ל-seed ייצור; שדרוג Supabase ל-Pro (גיבויים); פרסום מסך ההסכמה של Google (דורש דומיין); פיילוט. **לא בוצע:** תרגול שחזור מגיבוי (אין גיבויים בתוכנית החינמית; ראו `docs/ops.md`).
+**סטטוס (3.9.2026): הושלם חלקית.** QA בייצור: `scripts/qa-prod.mjs` (13 צעדים, admin + 2 מטפלים, סשנים דרך `scripts/prod-session.mjs` עם קישור חד-פעמי מה-service role; `/api/auth/callback` תומך ב-`token_hash`). E2E: סקריפטי `scripts/smoke-m{0,1,2}.mjs` (Playwright) + `tests/e2e/smoke.spec.ts`; ייצור: migrations, seed דמה, Google OAuth, SMTP, pg_cron, Sentry DSN, `docs/ops.md`. **ממתין לבעלים:** נתוני מתחמים אמיתיים ל-seed ייצור; שדרוג Supabase ל-Pro (גיבויים); פרסום מסך ההסכמה של Google (דורש דומיין); פיילוט. **לא בוצע:** תרגול שחזור מגיבוי (אין גיבויים בתוכנית החינמית; ראו `docs/ops.md`).
 
 **תוצר M4:** Definition of Done בנספח א׳ של `plans.md` מסומן במלואו.
 
