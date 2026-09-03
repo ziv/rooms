@@ -435,3 +435,12 @@ project_id = "adfbyvarfsfplfdjorgt"
 [remotes.rooms.auth]
 site_url = "https://rooms-ruby.vercel.app"
 additional_redirect_urls = ["https://rooms-ruby.vercel.app/**", "https://*-zivs-projects-1f56dd63.vercel.app/**"]
+
+[remotes.rooms.auth.email.smtp]
+enabled = true
+host = "smtp.gmail.com"
+port = 587
+user = "env(GMAIL_USER)"
+pass = "env(GMAIL_APP_PASSWORD)"
+admin_email = "env(GMAIL_USER)"
+sender_name = "מערכת תיאום חדרים"

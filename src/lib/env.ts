@@ -12,7 +12,8 @@ const serverSchema = z.object({
   DATABASE_URL: z.string().min(1),
   SUPER_ADMIN_EMAIL: z.string().email(),
   APP_URL: z.string().url().default("http://localhost:3000"),
-  RESEND_API_KEY: z.string().optional(),
+  GMAIL_USER: z.string().email().optional(),
+  GMAIL_APP_PASSWORD: z.string().min(1).optional(),
   EMAIL_FROM: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   THERAPIST_CAN_CANCEL_OCCURRENCE: z
