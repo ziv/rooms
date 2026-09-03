@@ -1,6 +1,6 @@
 # Operations runbook
 
-Production: https://keshet.space · Vercel project `rooms` · Supabase project `rooms` (`adfbyvarfsfplfdjorgt`, eu-central-1)
+Production: https://www.keshet.space · Vercel project `rooms` · Supabase project `rooms` (`adfbyvarfsfplfdjorgt`, eu-central-1)
 
 ## Secrets and where they live
 

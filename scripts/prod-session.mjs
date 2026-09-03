@@ -5,7 +5,7 @@ import fs from "node:fs";
 
 const env = Object.fromEntries(fs.readFileSync(".env.supabase", "utf8").split("\n").filter((l) => l.includes("=")).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
 const PROD_URL = "https://adfbyvarfsfplfdjorgt.supabase.co";
-const APP = "https://keshet.space";
+const APP = "https://www.keshet.space";
 
 export async function sessionUrl(email, next = "/calendar", { create = false } = {}) {
   const admin = createClient(PROD_URL, env.SUPABASE_PROD_SERVICE_ROLE_KEY, { auth: { persistSession: false } });

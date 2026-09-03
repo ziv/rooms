@@ -4,7 +4,7 @@ import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import { sessionUrl } from "./prod-session.mjs";
 
-const APP = "https://keshet.space";
+const APP = "https://www.keshet.space";
 const ADMIN = "ziv.perry@gmail.com";
 const stamp = Date.now();
 const T1 = `ziv.perry+qa1-${stamp}@gmail.com`;

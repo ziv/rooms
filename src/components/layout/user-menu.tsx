@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -28,21 +29,25 @@ export function UserMenu({ actor, admin }: { actor: Pick<Actor, "email" | "fullN
         {actor.fullName ?? actor.email}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="font-normal text-xs text-muted-foreground" dir="ltr">
-          {actor.email}
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal text-xs text-muted-foreground" dir="ltr">
+            {actor.email}
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/profile" />}>{t("profile")}</DropdownMenuItem>
         {admin && <DropdownMenuItem render={<Link href="/admin/dashboard" />}>{t("admin")}</DropdownMenuItem>}
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">{t("language")}</DropdownMenuLabel>
-        {LOCALES.filter((l) => l !== locale).map((l) => (
-          <DropdownMenuItem key={l} onSelect={() => router.replace(pathname, { locale: l })}>
-            {tl(l)}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">{t("language")}</DropdownMenuLabel>
+          {LOCALES.filter((l) => l !== locale).map((l) => (
+            <DropdownMenuItem key={l} onClick={() => router.replace(pathname, { locale: l })}>
+              {tl(l)}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => signOutAction()}>{t("signOut")}</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => signOutAction()}>{t("signOut")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

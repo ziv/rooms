@@ -433,7 +433,7 @@ enabled = true
 project_id = "adfbyvarfsfplfdjorgt"
 
 [remotes.rooms.auth]
-site_url = "https://keshet.space"
+site_url = "https://www.keshet.space"
 additional_redirect_urls = ["https://keshet.space/**", "https://www.keshet.space/**", "https://rooms-ruby.vercel.app/**", "https://*-zivs-projects-1f56dd63.vercel.app/**"]
 
 [remotes.rooms.auth.email.smtp]
