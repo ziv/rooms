@@ -19,7 +19,7 @@ Production: https://www.keshet.space · Vercel project `rooms` · Supabase proje
 
 Push to `main` → Vercel builds and deploys automatically. This is the only way to deploy.
 
-Schema changes: run migrations **before** deploying code that needs them:
+Schema changes: migrations run automatically during the production build on Vercel (`package.json` `build` runs `pnpm db:migrate` when `VERCEL_ENV=production`, using the `DATABASE_URL_MIGRATIONS` env var set only for the production environment). They apply before the new code goes live; a failing migration fails the build. Preview builds never touch the database. Write migrations so the previous app version keeps working during the build. Manual fallback:
 
 ```bash
 set -a; . ./.env.supabase; set +a

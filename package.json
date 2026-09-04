@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "sh -c 'if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:migrate; fi' && next build",
     "start": "next start",
     "lint": "eslint && tsc --noEmit",
     "typecheck": "tsc --noEmit",
