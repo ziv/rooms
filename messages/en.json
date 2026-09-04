@@ -103,7 +103,7 @@
     "noSlots": "No free slots",
     "freeRange": "Free {range}",
     "slotLabel": "Room {room}, {time}, free",
-    "pastDay": "This date cannot be booked",
+    "pastDay": "Past dates cannot be booked",
     "legend": "Legend"
   },
   "admin": {
@@ -151,7 +151,6 @@
       "title": "Site settings",
       "name": "Site name",
       "address": "Address",
-      "bookingWindowDays": "Booking window (days)",
       "cancellationCutoffMinutes": "Change cutoff before start (minutes)",
       "status": "Status",
       "active": "Active",
@@ -332,7 +331,6 @@
     "SLOT_TAKEN": "This slot was just taken",
     "OUTSIDE_OPENING_HOURS": "Outside opening hours",
     "CLOSED": "The room is closed at this time",
-    "OUTSIDE_BOOKING_WINDOW": "Outside the booking window",
     "PAST_START": "Cannot book in the past",
     "INVALID_START_STEP": "Start time must be on a quarter hour",
     "INVALID_LOCAL_TIME": "This time does not exist on that date",

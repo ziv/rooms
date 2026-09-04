@@ -155,16 +155,15 @@ describe("sites", () => {
       siteId: site.id,
       name: "New",
       address: "Addr",
-      bookingWindowDays: 30,
       cancellationCutoffMinutes: 60,
       status: "ACTIVE" as const,
     };
     await expect(updateSite(actorFor(therapist), input)).rejects.toMatchObject({ code: "FORBIDDEN" });
     const updated = await updateSite(actorFor(admin), input);
-    expect(updated.bookingWindowDays).toBe(30);
+    expect(updated.cancellationCutoffMinutes).toBe(60);
     const audit = await listAuditEvents(actorFor(admin), { siteId: site.id });
     expect(audit[0].action).toBe("SITE_UPDATED");
-    expect(audit[0].before).toMatchObject({ bookingWindowDays: 90 });
+    expect(audit[0].before).toMatchObject({ cancellationCutoffMinutes: 0 });
   });
 });
 

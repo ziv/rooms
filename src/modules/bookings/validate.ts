@@ -11,7 +11,7 @@ export type BookableContext = {
   /** The user the booking belongs to. */
   targetUserId: string;
   range: Range;
-  /** Admin actions skip the booking window and past-start rules. */
+  /** Admin actions may create/move bookings in the past. */
   isAdminAction: boolean;
   ignoreBookingId?: string;
   now?: Date;
@@ -60,11 +60,7 @@ export async function assertBookable(tx: Tx, ctx: BookableContext): Promise<void
     throw new AppError("CLOSED");
   }
 
-  if (!ctx.isAdminAction) {
-    if (range.start <= now) throw new AppError("PAST_START");
-    const windowEnd = new Date(now.getTime() + site.bookingWindowDays * 86_400_000);
-    if (range.start > windowEnd) throw new AppError("OUTSIDE_BOOKING_WINDOW");
-  }
+  if (!ctx.isAdminAction && range.start <= now) throw new AppError("PAST_START");
 
   const conds = [
     eq(schema.bookings.roomId, room.id),

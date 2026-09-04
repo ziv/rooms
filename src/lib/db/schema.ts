@@ -58,15 +58,11 @@ export const sites = pgTable(
     name: text("name").notNull(),
     address: text("address").notNull(),
     timezone: text("timezone").notNull().default("Asia/Jerusalem"),
-    bookingWindowDays: integer("booking_window_days").notNull().default(90),
     cancellationCutoffMinutes: integer("cancellation_cutoff_minutes").notNull().default(0),
     status: activeStatus("status").notNull().default("ACTIVE"),
     ...timestamps,
   },
-  (t) => [
-    check("sites_window_check", sql`${t.bookingWindowDays} between 1 and 365`),
-    check("sites_cutoff_check", sql`${t.cancellationCutoffMinutes} >= 0`),
-  ],
+  (t) => [check("sites_cutoff_check", sql`${t.cancellationCutoffMinutes} >= 0`)],
 );
 
 // ---------- site_memberships ----------

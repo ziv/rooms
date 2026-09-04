@@ -38,7 +38,6 @@ export async function updateSite(actor: Actor, input: UpdateSiteInput): Promise<
       .set({
         name: input.name,
         address: input.address,
-        bookingWindowDays: input.bookingWindowDays,
         cancellationCutoffMinutes: input.cancellationCutoffMinutes,
         status: input.status,
         updatedAt: new Date(),
@@ -61,7 +60,6 @@ export async function updateSite(actor: Actor, input: UpdateSiteInput): Promise<
 const pick = (s: Site) => ({
   name: s.name,
   address: s.address,
-  bookingWindowDays: s.bookingWindowDays,
   cancellationCutoffMinutes: s.cancellationCutoffMinutes,
   status: s.status,
 });

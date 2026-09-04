@@ -21,7 +21,6 @@ export function SiteForm({ site }: { site: Site }) {
   const [form, setForm] = useState({
     name: site.name,
     address: site.address,
-    bookingWindowDays: site.bookingWindowDays,
     cancellationCutoffMinutes: site.cancellationCutoffMinutes,
     status: site.status,
   });
@@ -63,19 +62,7 @@ export function SiteForm({ site }: { site: Site }) {
               maxLength={200}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor={`window-${site.id}`}>{t("bookingWindowDays")}</Label>
-              <Input
-                id={`window-${site.id}`}
-                type="number"
-                min={1}
-                max={365}
-                value={form.bookingWindowDays}
-                onChange={(e) => setForm({ ...form, bookingWindowDays: Number(e.target.value) })}
-                required
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor={`cutoff-${site.id}`}>{t("cancellationCutoffMinutes")}</Label>
               <Input

@@ -22,6 +22,13 @@
       "when": 1788438965808,
       "tag": "0002_multi_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788524378547,
+      "tag": "0003_drop_booking_window",
+      "breakpoints": true
     }
   ]
 }
