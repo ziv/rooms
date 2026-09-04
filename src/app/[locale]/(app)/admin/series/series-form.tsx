@@ -208,11 +208,13 @@ export function PreviewPanel({
   timezone,
   pending,
   onCreate,
+  createLabel,
 }: {
   preview: SeriesPreview;
   timezone: string;
   pending: boolean;
   onCreate: (skip: boolean) => void;
+  createLabel?: string;
 }) {
   const t = useTranslations("admin.series");
   const fmt = useSiteFormat(timezone);
@@ -243,7 +245,7 @@ export function PreviewPanel({
       <div className="flex gap-2">
         {preview.conflictCount === 0 ? (
           <Button onClick={() => onCreate(false)} disabled={pending}>
-            {t("create")}
+            {createLabel ?? t("create")}
           </Button>
         ) : (
           <Button onClick={() => onCreate(true)} disabled={pending || preview.freeCount === 0}>

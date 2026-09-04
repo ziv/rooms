@@ -21,6 +21,12 @@ const fakeAuth = (): AuthAdmin & { calls: string[] } => {
       ids.set(email, id);
       return { id, created: true };
     },
+    async updateEmail(userId, email) {
+      calls.push(`update:${userId}:${email}`);
+    },
+    async deleteAuthUser(userId) {
+      calls.push(`delete:${userId}`);
+    },
   };
 };
 

@@ -5,6 +5,10 @@ import { env } from "@/lib/env";
 export type AuthAdmin = {
   /** Returns the auth user id for the email, creating a confirmed user when missing. */
   ensureAuthUser(email: string): Promise<{ id: string; created: boolean }>;
+  /** Changes the sign-in email (confirmed). */
+  updateEmail(userId: string, email: string): Promise<void>;
+  /** Deletes the sign-in account. Missing users are ignored. */
+  deleteAuthUser(userId: string): Promise<void>;
 };
 
 /** Supabase Auth admin API (service role). Never import from client components. */
@@ -29,6 +33,14 @@ export function supabaseAuthAdmin(): AuthAdmin {
         }
       }
       throw error ?? new Error("createUser returned no user");
+    },
+    async updateEmail(userId, email) {
+      const { error } = await client.auth.admin.updateUserById(userId, { email, email_confirm: true });
+      if (error) throw error;
+    },
+    async deleteAuthUser(userId) {
+      const { error } = await client.auth.admin.deleteUser(userId);
+      if (error && !/not found/i.test(error.message)) throw error;
     },
   };
 }

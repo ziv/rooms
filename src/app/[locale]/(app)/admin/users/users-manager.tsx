@@ -20,7 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAction } from "@/hooks/use-action";
-import { inviteUserAction, setUserRoleAction } from "./actions";
+import {
+  deleteUserAction,
+  inviteUserAction,
+  setUserRoleAction,
+  setUserStatusAction,
+  updateUserAction,
+} from "./actions";
 import { LOCALES, type Locale } from "@/i18n/routing";
 
 export type UserView = {
@@ -29,6 +35,7 @@ export type UserView = {
   fullName: string | null;
   role: "THERAPIST" | "SUPER_ADMIN";
   status: "ACTIVE" | "DISABLED";
+  locale: string;
   memberships: { siteId: string; siteName: string; status: string }[];
 };
 
@@ -42,6 +49,45 @@ export function UsersManager({ users, sites, meId }: Props) {
   const { run, pending } = useAction();
   const [addOpen, setAddOpen] = useState(false);
   const [confirm, setConfirm] = useState<{ user: UserView; role: "THERAPIST" | "SUPER_ADMIN" } | null>(null);
+  const [editing, setEditing] = useState<UserView | null>(null);
+  const [deleting, setDeleting] = useState<UserView | null>(null);
+
+  const setStatus = (u: UserView, status: "ACTIVE" | "DISABLED") =>
+    run(() => setUserStatusAction({ userId: u.id, status }), {
+      onSuccess: () => {
+        toast.success(t("statusUpdated"));
+        router.refresh();
+      },
+      onError: (r) => {
+        if (r.code === "LAST_ADMIN") {
+          toast.error(t("lastAdmin"));
+          return true;
+        }
+        return false;
+      },
+    });
+  const doDelete = () => {
+    if (!deleting) return;
+    run(() => deleteUserAction({ userId: deleting.id }), {
+      onSuccess: (r) => {
+        toast.success(
+          r.mode === "HARD"
+            ? t("deleted")
+            : t("deletedAnon", { bookings: r.cancelledBookings, series: r.cancelledSeries }),
+        );
+        setDeleting(null);
+        router.refresh();
+      },
+      onError: (r) => {
+        if (r.code === "LAST_ADMIN") {
+          toast.error(t("lastAdmin"));
+          setDeleting(null);
+          return true;
+        }
+        return false;
+      },
+    });
+  };
 
   const applyRole = () => {
     if (!confirm) return;
@@ -102,27 +148,47 @@ export function UsersManager({ users, sites, meId }: Props) {
                   ))}
                 </TableCell>
                 <TableCell>{t(`status${u.status}`)}</TableCell>
-                <TableCell className="text-end">
-                  {u.status === "ACTIVE" &&
-                    (u.role === "SUPER_ADMIN" ? (
+                <TableCell className="text-end whitespace-nowrap">
+                  <div className="inline-flex gap-1.5">
+                    <Button size="sm" variant="outline" disabled={pending} onClick={() => setEditing(u)}>
+                      {t("edit")}
+                    </Button>
+                    {u.status === "ACTIVE" &&
+                      (u.role === "SUPER_ADMIN" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pending}
+                          onClick={() => setConfirm({ user: u, role: "THERAPIST" })}
+                        >
+                          {t("demote")}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={pending}
+                          onClick={() => setConfirm({ user: u, role: "SUPER_ADMIN" })}
+                        >
+                          {t("promote")}
+                        </Button>
+                      ))}
+                    {u.id !== meId && (
                       <Button
                         size="sm"
                         variant="outline"
                         disabled={pending}
-                        onClick={() => setConfirm({ user: u, role: "THERAPIST" })}
+                        onClick={() => setStatus(u, u.status === "ACTIVE" ? "DISABLED" : "ACTIVE")}
                       >
-                        {t("demote")}
+                        {u.status === "ACTIVE" ? t("disable") : t("enable")}
                       </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={pending}
-                        onClick={() => setConfirm({ user: u, role: "SUPER_ADMIN" })}
-                      >
-                        {t("promote")}
+                    )}
+                    {u.id !== meId && (
+                      <Button size="sm" variant="destructive" disabled={pending} onClick={() => setDeleting(u)}>
+                        {t("delete")}
                       </Button>
-                    ))}
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -157,7 +223,122 @@ export function UsersManager({ users, sites, meId }: Props) {
       </Dialog>
 
       {addOpen && <AddUserDialog sites={sites} onClose={() => setAddOpen(false)} />}
+      {editing && <EditUserDialog user={editing} onClose={() => setEditing(null)} />}
+
+      <Dialog open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {t("deleteTitle")}: {deleting?.fullName ?? deleting?.email}
+            </DialogTitle>
+            <DialogDescription>{t("deleteHint")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleting(null)} disabled={pending}>
+              {ta("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={doDelete} disabled={pending}>
+              {t("delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function EditUserDialog({ user, onClose }: { user: UserView; onClose: () => void }) {
+  const t = useTranslations("admin.users");
+  const tl = useTranslations("locale");
+  const ta = useTranslations("app");
+  const router = useRouter();
+  const { run, pending } = useAction();
+  const [form, setForm] = useState({
+    fullName: user.fullName ?? "",
+    email: user.email,
+    locale: (user.locale === "en" ? "en" : "he") as Locale,
+  });
+  const localeItems = LOCALES.map((l) => ({ value: l, label: tl(l) }));
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    run(() => updateUserAction({ userId: user.id, ...form }), {
+      onSuccess: () => {
+        toast.success(t("updated"));
+        onClose();
+        router.refresh();
+      },
+      onError: (r) => {
+        if (r.code === "ALREADY_EXISTS") {
+          toast.error(t("emailInUse"));
+          return true;
+        }
+        return false;
+      },
+    });
+  };
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("editTitle")}</DialogTitle>
+          <DialogDescription dir="ltr" className="text-start">
+            {user.email}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-name">{t("name")}</Label>
+            <Input
+              id="edit-name"
+              value={form.fullName}
+              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+              required
+              minLength={2}
+              maxLength={80}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-email">{t("email")}</Label>
+            <Input
+              id="edit-email"
+              type="email"
+              dir="ltr"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-locale">{t("language")}</Label>
+            <Select
+              value={form.locale}
+              onValueChange={(v) => v && setForm({ ...form, locale: v as Locale })}
+              items={localeItems}
+            >
+              <SelectTrigger id="edit-locale">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {localeItems.map((i) => (
+                  <SelectItem key={i.value} value={i.value}>
+                    {i.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
+              {ta("cancel")}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {ta("save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

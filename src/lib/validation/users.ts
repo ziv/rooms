@@ -21,3 +21,16 @@ export const inviteUserSchema = z.object({
   role: z.enum(["THERAPIST", "SUPER_ADMIN"]).default("THERAPIST"),
 });
 export type InviteUserInput = z.infer<typeof inviteUserSchema>;
+
+export const updateUserSchema = z.object({
+  userId: uuid,
+  fullName: fullNameSchema,
+  email: z.string().trim().toLowerCase().email(),
+  locale: localeSchema,
+});
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+
+export const setUserStatusSchema = z.object({ userId: uuid, status: z.enum(["ACTIVE", "DISABLED"]) });
+export type SetUserStatusInput = z.infer<typeof setUserStatusSchema>;
+
+export const deleteUserSchema = z.object({ userId: uuid });

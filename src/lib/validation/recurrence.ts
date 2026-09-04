@@ -39,3 +39,10 @@ export type PreviewSeriesInput = z.infer<typeof previewSeriesSchema>;
 export type CreateSeriesInput = z.infer<typeof createSeriesSchema>;
 export type SplitSeriesInput = z.infer<typeof splitSeriesSchema>;
 export type CancelSeriesInput = z.infer<typeof cancelSeriesSchema>;
+
+export const updateSeriesSchema = seriesInputSchema.extend({
+  seriesId: uuid,
+  skipConflicts: z.boolean().default(false),
+});
+export const deleteSeriesSchema = z.object({ seriesId: uuid });
+export type UpdateSeriesInput = z.infer<typeof updateSeriesSchema>;

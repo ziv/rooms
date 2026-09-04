@@ -229,7 +229,17 @@
       "back": "Back to series",
       "thisOnly": "This occurrence only",
       "thisAndFollowing": "This and following",
-      "seriesLink": "Open series"
+      "seriesLink": "Open series",
+      "edit": "Edit",
+      "editTitle": "Edit series",
+      "editHint": "Occurrences that already happened are kept. Occurrences from today on are deleted and regenerated with the new details (including exceptions).",
+      "delete": "Delete",
+      "deleteTitle": "Delete series",
+      "deleteHint": "If no occurrence has happened yet, the series and all its occurrences are removed completely. Otherwise future occurrences are cancelled and history is kept.",
+      "deleted": "Series deleted",
+      "deletedCancelled": "Series cancelled ({count} future occurrences), history kept",
+      "updated": "Series updated",
+      "save": "Save changes"
     },
     "audit": {
       "title": "Audit log",
@@ -313,7 +323,21 @@
       "existed": "The account already existed; sites approved and email sent",
       "empty": "No users",
       "you": "(you)",
-      "noName": "(no name)"
+      "noName": "(no name)",
+      "edit": "Edit",
+      "editTitle": "Edit user",
+      "disable": "Disable",
+      "enable": "Enable",
+      "delete": "Delete",
+      "deleteTitle": "Delete user",
+      "deleteHint": "If the user has no bookings, the account is removed completely. Otherwise identifying details are removed, future bookings and series are cancelled, and history is kept for reports. The sign-in account is deleted either way.",
+      "deleted": "User deleted",
+      "deletedAnon": "User removed: {bookings} bookings and {series} series cancelled",
+      "statusUpdated": "Status updated",
+      "updated": "User updated",
+      "emailInUse": "Email address already in use",
+      "cannotSelf": "You cannot do this to yourself",
+      "actions": "Actions"
     }
   },
   "legal": {

@@ -27,6 +27,7 @@ import type {
   PreviewSeriesInput,
   SeriesInput,
   SplitSeriesInput,
+  UpdateSeriesInput,
 } from "@/lib/validation/recurrence";
 import type { RecurrenceSeries, Site } from "@/lib/db/schema";
 
@@ -496,3 +497,176 @@ async function notifyUser(
 }
 
 export type { Range };
+
+/**
+ * Edits an active series in place: past occurrences stay; occurrences from today on are
+ * deleted and regenerated with the new details (conflicts previewed like on create).
+ */
+export async function updateSeries(
+  actor: Actor,
+  input: UpdateSeriesInput,
+): Promise<{ series: RecurrenceSeries; deleted: number; created: number; skipped: string[] }> {
+  requireAdmin(actor);
+  return db.transaction(async (tx) => {
+    const old = await tx.query.recurrenceSeries.findFirst({ where: eq(schema.recurrenceSeries.id, input.seriesId) });
+    if (!old) throw notFound("series");
+    if (old.status !== "ACTIVE") throw validation({ status: "series is not active" });
+    if (input.siteId !== old.siteId) throw validation({ siteId: "cannot move a series between sites" });
+    const site = await validateSeriesInput(tx, input);
+    await lockRooms(tx, [old.roomId, input.roomId]);
+
+    const today = todayLocal(site.timezone);
+    const regenFrom = input.startsOn > today ? input.startsOn : today;
+    const fromStart = localToUtc(regenFrom, "00:00", site.timezone)!;
+    const toDelete = await tx.query.bookings.findMany({
+      where: and(eq(schema.bookings.seriesId, old.id), gte(schema.bookings.startAt, fromStart)),
+    });
+    if (toDelete.length)
+      await tx.delete(schema.bookings).where(
+        inArray(
+          schema.bookings.id,
+          toDelete.map((b) => b.id),
+        ),
+      );
+
+    const preview = await computePreview(tx, site, { ...input, startsOn: regenFrom, excludeSeriesId: old.id });
+    if (preview.conflictCount > 0 && !input.skipConflicts)
+      throw new AppError("CONFLICTS", "Series has conflicts", preview);
+
+    const [series] = await tx
+      .update(schema.recurrenceSeries)
+      .set({
+        roomId: input.roomId,
+        userId: input.userId,
+        weekday: input.weekday,
+        startTime: input.startTime,
+        endTime: input.endTime,
+        startsOn: input.startsOn,
+        endsOn: input.endsOn,
+        note: input.note ?? null,
+        updatedBy: actor.userId,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.recurrenceSeries.id, old.id))
+      .returning();
+    const free = preview.occurrences.filter((o) => !o.conflict && o.start && o.end);
+    if (free.length) {
+      try {
+        await tx.insert(schema.bookings).values(
+          free.map((o) => ({
+            id: randomUUID(),
+            siteId: series.siteId,
+            roomId: series.roomId,
+            userId: series.userId,
+            startAt: new Date(o.start!),
+            endAt: new Date(o.end!),
+            bookingType: "SERIES" as const,
+            seriesId: series.id,
+            note: series.note,
+            createdBy: actor.userId,
+            updatedBy: actor.userId,
+          })),
+        );
+      } catch (e) {
+        if (isExclusionViolation(e)) throw new AppError("SLOT_TAKEN");
+        throw e;
+      }
+    }
+    const skipped = preview.occurrences.filter((o) => o.conflict).map((o) => o.date);
+    await audit(tx, {
+      actor,
+      siteId: series.siteId,
+      action: "SERIES_UPDATED",
+      entityType: "series",
+      entityId: series.id,
+      before: { ...seriesSummary(old), deletedOccurrences: toDelete.length },
+      after: { ...seriesSummary(series), regeneratedFrom: regenFrom, created: free.length, skipped },
+    });
+    await notifyUser(tx, series.userId, "SERIES_CHANGED", {
+      ...seriesPayload(series, site),
+      fromDate: regenFrom,
+      created: free.length,
+      skipped,
+    });
+    if (series.userId !== old.userId)
+      await notifyUser(tx, old.userId, "SERIES_CANCELLED", { ...seriesPayload(old, site), fromDate: regenFrom });
+    return { series, deleted: toDelete.length, created: free.length, skipped };
+  });
+}
+
+export type DeleteSeriesResult = { mode: "DELETED" | "CANCELLED"; removed: number; cancelled: number };
+
+/** Removes a series entirely when no occurrence has started yet; otherwise cancels the future and keeps history. */
+export async function deleteSeries(actor: Actor, seriesId: string): Promise<DeleteSeriesResult> {
+  requireAdmin(actor);
+  return db.transaction(async (tx) => {
+    const series = await tx.query.recurrenceSeries.findFirst({ where: eq(schema.recurrenceSeries.id, seriesId) });
+    if (!series) throw notFound("series");
+    await lockRooms(tx, [series.roomId]);
+    const now = new Date();
+    const past = await tx.$count(
+      schema.bookings,
+      and(eq(schema.bookings.seriesId, seriesId), lt(schema.bookings.startAt, now)),
+    );
+    if (past === 0) {
+      const removed = await tx
+        .delete(schema.bookings)
+        .where(eq(schema.bookings.seriesId, seriesId))
+        .returning({ id: schema.bookings.id });
+      await tx.delete(schema.recurrenceSeries).where(eq(schema.recurrenceSeries.id, seriesId));
+      await audit(tx, {
+        actor,
+        siteId: series.siteId,
+        action: "SERIES_DELETED",
+        entityType: "series",
+        entityId: seriesId,
+        before: { ...seriesSummary(series), removedOccurrences: removed.length },
+      });
+      const site = await tx.query.sites.findFirst({ where: eq(schema.sites.id, series.siteId) });
+      if (site && series.status === "ACTIVE")
+        await notifyUser(tx, series.userId, "SERIES_CANCELLED", {
+          ...seriesPayload(series, site),
+          cancelled: removed.length,
+        });
+      return { mode: "DELETED" as const, removed: removed.length, cancelled: 0 };
+    }
+    const cancelled = await tx
+      .update(schema.bookings)
+      .set({
+        status: "CANCELLED",
+        cancelledAt: now,
+        cancelledBy: actor.userId,
+        cancellationReason: "SERIES_CANCELLED",
+        updatedBy: actor.userId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(schema.bookings.seriesId, seriesId),
+          eq(schema.bookings.status, "CONFIRMED"),
+          gte(schema.bookings.startAt, now),
+        ),
+      )
+      .returning({ id: schema.bookings.id });
+    await tx
+      .update(schema.recurrenceSeries)
+      .set({ status: "CANCELLED", updatedBy: actor.userId, updatedAt: now })
+      .where(eq(schema.recurrenceSeries.id, seriesId));
+    await audit(tx, {
+      actor,
+      siteId: series.siteId,
+      action: "SERIES_CANCELLED",
+      entityType: "series",
+      entityId: seriesId,
+      before: { status: series.status },
+      after: { status: "CANCELLED", cancelledOccurrences: cancelled.length, viaDelete: true },
+    });
+    const site = await tx.query.sites.findFirst({ where: eq(schema.sites.id, series.siteId) });
+    if (site && series.status === "ACTIVE")
+      await notifyUser(tx, series.userId, "SERIES_CANCELLED", {
+        ...seriesPayload(series, site),
+        cancelled: cancelled.length,
+      });
+    return { mode: "CANCELLED" as const, removed: 0, cancelled: cancelled.length };
+  });
+}

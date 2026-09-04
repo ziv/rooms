@@ -1,10 +1,16 @@
 import "server-only";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
-import { db, schema } from "@/lib/db";
+import { and, asc, eq, gte, inArray, or, sql } from "drizzle-orm";
+import { db, schema, type Tx } from "@/lib/db";
 import { env } from "@/lib/env";
 import { audit } from "@/modules/audit/service";
 import type { Actor } from "@/modules/auth/actor";
-import type { InviteUserInput, SetUserRoleInput, UpdateProfileInput } from "@/lib/validation/users";
+import type {
+  InviteUserInput,
+  SetUserRoleInput,
+  SetUserStatusInput,
+  UpdateProfileInput,
+  UpdateUserInput,
+} from "@/lib/validation/users";
 import { AppError, forbidden, notFound, validation } from "@/lib/errors";
 import { requireAdmin } from "@/modules/auth/guards";
 import { enqueue } from "@/modules/notifications/outbox";
@@ -278,4 +284,176 @@ export async function inviteUser(
     });
     return { user, created };
   });
+}
+
+async function assertNotLastManager(tx: Tx, target: User): Promise<void> {
+  if (target.globalRole !== "SUPER_ADMIN" || target.status !== "ACTIVE") return;
+  const [{ count }] = await tx
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.users)
+    .where(and(eq(schema.users.globalRole, "SUPER_ADMIN"), eq(schema.users.status, "ACTIVE")));
+  if (count <= 1) throw new AppError("LAST_ADMIN", "Cannot remove the last manager");
+}
+
+/** Manager edits another user's name, email and language. Email changes propagate to the sign-in account. */
+export async function updateUser(actor: Actor, input: UpdateUserInput, authAdmin: AuthAdmin): Promise<User> {
+  requireAdmin(actor);
+  const target = await db.query.users.findFirst({ where: eq(schema.users.id, input.userId) });
+  if (!target) throw notFound("user");
+  if (target.email !== input.email) {
+    const clash = await db.query.users.findFirst({ where: eq(schema.users.email, input.email) });
+    if (clash) throw new AppError("ALREADY_EXISTS", "Email already in use");
+    await authAdmin.updateEmail(target.id, input.email);
+  }
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(schema.users)
+      .set({ fullName: input.fullName, email: input.email, preferredLocale: input.locale, updatedAt: new Date() })
+      .where(eq(schema.users.id, target.id))
+      .returning();
+    await audit(tx, {
+      actor,
+      action: "USER_UPDATED",
+      entityType: "user",
+      entityId: target.id,
+      before: { fullName: target.fullName, email: target.email, preferredLocale: target.preferredLocale },
+      after: { fullName: updated.fullName, email: updated.email, preferredLocale: updated.preferredLocale },
+    });
+    return updated;
+  });
+}
+
+/** Disable (blocks sign-in use of the app) or re-enable. Not for yourself or the last manager. */
+export async function setUserStatus(actor: Actor, input: SetUserStatusInput): Promise<User> {
+  requireAdmin(actor);
+  if (input.userId === actor.userId) throw validation({ userId: "cannot change your own status" });
+  return db.transaction(async (tx) => {
+    const target = await tx.query.users.findFirst({ where: eq(schema.users.id, input.userId) });
+    if (!target) throw notFound("user");
+    if (target.status === input.status) return target;
+    if (input.status === "DISABLED") await assertNotLastManager(tx, target);
+    const [updated] = await tx
+      .update(schema.users)
+      .set({ status: input.status, updatedAt: new Date() })
+      .where(eq(schema.users.id, target.id))
+      .returning();
+    await audit(tx, {
+      actor,
+      action: "USER_STATUS_SET",
+      entityType: "user",
+      entityId: target.id,
+      before: { status: target.status },
+      after: { status: input.status },
+    });
+    return updated;
+  });
+}
+
+export type DeleteUserResult = { mode: "HARD" | "ANONYMIZED"; cancelledBookings: number; cancelledSeries: number };
+
+/**
+ * Deletes a user. With no bookings/series the row is removed entirely; otherwise the user is
+ * disabled and anonymized, future bookings and active series are cancelled, memberships suspended.
+ * The sign-in account is deleted in both cases.
+ */
+export async function deleteUser(actor: Actor, userId: string, authAdmin: AuthAdmin): Promise<DeleteUserResult> {
+  requireAdmin(actor);
+  if (userId === actor.userId) throw validation({ userId: "cannot delete yourself" });
+  const result = await db.transaction(async (tx) => {
+    const target = await tx.query.users.findFirst({ where: eq(schema.users.id, userId) });
+    if (!target) throw notFound("user");
+    await assertNotLastManager(tx, target);
+    const now = new Date();
+    const hasBookings = (await tx.$count(schema.bookings, eq(schema.bookings.userId, userId))) > 0;
+    const hasSeries = (await tx.$count(schema.recurrenceSeries, eq(schema.recurrenceSeries.userId, userId))) > 0;
+    if (!hasBookings && !hasSeries) {
+      await tx.delete(schema.notifications).where(eq(schema.notifications.userId, userId));
+      await tx.delete(schema.siteMemberships).where(eq(schema.siteMemberships.userId, userId));
+      await tx
+        .update(schema.siteMemberships)
+        .set({ decidedBy: null })
+        .where(eq(schema.siteMemberships.decidedBy, userId));
+      await tx.update(schema.auditEvents).set({ actorUserId: null }).where(eq(schema.auditEvents.actorUserId, userId));
+      await tx.update(schema.closures).set({ createdBy: actor.userId }).where(eq(schema.closures.createdBy, userId));
+      await tx
+        .update(schema.recurrenceSeries)
+        .set({ createdBy: actor.userId })
+        .where(eq(schema.recurrenceSeries.createdBy, userId));
+      await tx
+        .update(schema.recurrenceSeries)
+        .set({ updatedBy: actor.userId })
+        .where(eq(schema.recurrenceSeries.updatedBy, userId));
+      await tx.update(schema.bookings).set({ createdBy: actor.userId }).where(eq(schema.bookings.createdBy, userId));
+      await tx.update(schema.bookings).set({ updatedBy: actor.userId }).where(eq(schema.bookings.updatedBy, userId));
+      await tx
+        .update(schema.bookings)
+        .set({ cancelledBy: actor.userId })
+        .where(eq(schema.bookings.cancelledBy, userId));
+      await tx.delete(schema.users).where(eq(schema.users.id, userId));
+      await audit(tx, {
+        actor,
+        action: "USER_DELETED_HARD",
+        entityType: "user",
+        entityId: userId,
+        before: { email: target.email, fullName: target.fullName },
+      });
+      return { mode: "HARD" as const, cancelledBookings: 0, cancelledSeries: 0 };
+    }
+    const cancelled = await tx
+      .update(schema.bookings)
+      .set({
+        status: "CANCELLED",
+        cancelledAt: now,
+        cancelledBy: actor.userId,
+        cancellationReason: "USER_DELETED",
+        updatedBy: actor.userId,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(schema.bookings.userId, userId),
+          eq(schema.bookings.status, "CONFIRMED"),
+          gte(schema.bookings.startAt, now),
+        ),
+      )
+      .returning({ id: schema.bookings.id });
+    const series = await tx
+      .update(schema.recurrenceSeries)
+      .set({ status: "CANCELLED", updatedBy: actor.userId, updatedAt: now })
+      .where(and(eq(schema.recurrenceSeries.userId, userId), eq(schema.recurrenceSeries.status, "ACTIVE")))
+      .returning({ id: schema.recurrenceSeries.id });
+    await tx
+      .update(schema.siteMemberships)
+      .set({ status: "SUSPENDED", decidedAt: now, decidedBy: actor.userId })
+      .where(
+        and(
+          eq(schema.siteMemberships.userId, userId),
+          or(eq(schema.siteMemberships.status, "APPROVED"), eq(schema.siteMemberships.status, "PENDING")),
+        ),
+      );
+    await tx
+      .delete(schema.notifications)
+      .where(and(eq(schema.notifications.userId, userId), eq(schema.notifications.status, "PENDING")));
+    await tx
+      .update(schema.users)
+      .set({
+        status: "DISABLED",
+        globalRole: "THERAPIST",
+        fullName: "משתמש שהוסר",
+        email: `deleted+${userId}@invalid`,
+        updatedAt: now,
+      })
+      .where(eq(schema.users.id, userId));
+    await audit(tx, {
+      actor,
+      action: "USER_DELETED",
+      entityType: "user",
+      entityId: userId,
+      before: { email: target.email, fullName: target.fullName, status: target.status },
+      after: { status: "DISABLED", cancelledBookings: cancelled.length, cancelledSeries: series.length },
+    });
+    return { mode: "ANONYMIZED" as const, cancelledBookings: cancelled.length, cancelledSeries: series.length };
+  });
+  await authAdmin.deleteAuthUser(userId);
+  return result;
 }

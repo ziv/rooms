@@ -19,6 +19,7 @@ export default async function UsersPage() {
           fullName: u.fullName,
           role: u.globalRole,
           status: u.status,
+          locale: u.preferredLocale,
           memberships: u.memberships,
         }))}
         sites={sites.map((s) => ({ id: s.id, name: s.name }))}
