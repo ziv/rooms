@@ -177,7 +177,7 @@ export const recurrenceSeries = pgTable(
   (t) => [
     check("series_weekday_check", sql`${t.weekday} between 0 and 6`),
     check("series_time_check", sql`${t.startTime} < ${t.endTime}`),
-    check("series_dates_check", sql`${t.endsOn} >= ${t.startsOn} and ${t.endsOn} <= ${t.startsOn} + 364`),
+    check("series_dates_check", sql`${t.endsOn} >= ${t.startsOn} and ${t.endsOn} <= ${t.startsOn} + 3653`),
     index("series_site_status").on(t.siteId, t.status),
   ],
 );

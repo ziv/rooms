@@ -11,7 +11,8 @@ export type ExpandInput = {
 };
 export type Occurrence = { date: string; range: Range | null; invalid?: "INVALID_LOCAL_TIME" };
 
-export const MAX_SERIES_WEEKS = 52;
+/** Longest series: 10 years (matches the `series_dates_check` DB constraint). */
+export const MAX_SERIES_DAYS = 3653;
 
 export function expandSeries(input: ExpandInput): Occurrence[] {
   parseDate(input.startsOn);

@@ -67,6 +67,12 @@ describe("series", () => {
     await expect(createSeries(a.t1, { ...base, skipConflicts: false })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
+  it("creates a 5-year series (about 261 occurrences)", async () => {
+    const { a, base } = await setup();
+    const { created } = await createSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 5 * 365), skipConflicts: false });
+    expect(created).toBeGreaterThanOrEqual(260);
+  });
+
   it("validates duration, quarter hours, membership and max length", async () => {
     const { a, base, t2 } = await setup();
     await expect(previewSeries(a.admin, { ...base, endTime: "09:30" })).rejects.toMatchObject({ code: "VALIDATION" });
@@ -74,7 +80,7 @@ describe("series", () => {
     await expect(previewSeries(a.admin, { ...base, startTime: "09:10" })).rejects.toMatchObject({
       code: "INVALID_START_STEP",
     });
-    await expect(previewSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 400) })).rejects.toMatchObject({
+    await expect(previewSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 4000) })).rejects.toMatchObject({
       code: "VALIDATION",
     });
     const stranger = await makeUser();

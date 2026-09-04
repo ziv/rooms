@@ -1,0 +1,2 @@
+ALTER TABLE "recurrence_series" DROP CONSTRAINT "series_dates_check";--> statement-breakpoint
+ALTER TABLE "recurrence_series" ADD CONSTRAINT "series_dates_check" CHECK ("recurrence_series"."ends_on" >= "recurrence_series"."starts_on" and "recurrence_series"."ends_on" <= "recurrence_series"."starts_on" + 3653);

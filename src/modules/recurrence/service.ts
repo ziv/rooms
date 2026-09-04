@@ -20,7 +20,7 @@ import {
   todayLocal,
   type Range,
 } from "@/lib/time";
-import { expandSeries, MAX_SERIES_WEEKS } from "./expand";
+import { expandSeries, MAX_SERIES_DAYS } from "./expand";
 import type {
   CancelSeriesInput,
   CreateSeriesInput,
@@ -58,8 +58,7 @@ async function validateSeriesInput(tx: Tx, input: SeriesInput): Promise<Site> {
   const minutes = timeToMinutes(input.endTime) - timeToMinutes(input.startTime);
   if (minutes < 60 || minutes > 12 * 60) throw validation({ duration: "between 1 and 12 hours" });
   if (input.endsOn < input.startsOn) throw validation({ endsOn: "before startsOn" });
-  if (addDays(input.startsOn, MAX_SERIES_WEEKS * 7 - 1) < input.endsOn)
-    throw validation({ endsOn: `max ${MAX_SERIES_WEEKS} weeks` });
+  if (addDays(input.startsOn, MAX_SERIES_DAYS) < input.endsOn) throw validation({ endsOn: `max ${MAX_SERIES_DAYS} days` });
   return site;
 }
 
