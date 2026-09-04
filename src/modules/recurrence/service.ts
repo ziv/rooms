@@ -56,7 +56,7 @@ async function validateSeriesInput(tx: Tx, input: SeriesInput): Promise<Site> {
   if (!membership || membership.status !== "APPROVED") throw new AppError("MEMBER_NOT_APPROVED");
   if (!isOnQuarter(input.startTime) || !isOnQuarter(input.endTime)) throw new AppError("INVALID_START_STEP");
   const minutes = timeToMinutes(input.endTime) - timeToMinutes(input.startTime);
-  if (minutes < 60 || minutes > 12 * 60) throw validation({ duration: "between 1 and 12 hours" });
+  if (minutes < 60) throw validation({ duration: "at least 1 hour" });
   if (input.endsOn < input.startsOn) throw validation({ endsOn: "before startsOn" });
   if (addDays(input.startsOn, MAX_SERIES_DAYS) < input.endsOn) throw validation({ endsOn: `max ${MAX_SERIES_DAYS} days` });
   return site;

@@ -76,7 +76,8 @@ describe("series", () => {
   it("validates duration, quarter hours, membership and max length", async () => {
     const { a, base, t2 } = await setup();
     await expect(previewSeries(a.admin, { ...base, endTime: "09:30" })).rejects.toMatchObject({ code: "VALIDATION" });
-    await expect(previewSeries(a.admin, { ...base, endTime: "22:00" })).rejects.toMatchObject({ code: "VALIDATION" });
+    // no maximum: a series may cover the whole opening day (here 08:00–21:00)
+    await expect(previewSeries(a.admin, { ...base, startTime: "08:00", endTime: "21:00" })).resolves.toMatchObject({ conflictCount: 0 });
     await expect(previewSeries(a.admin, { ...base, startTime: "09:10" })).rejects.toMatchObject({
       code: "INVALID_START_STEP",
     });
