@@ -8,8 +8,8 @@ export type SlotInput = {
   openSegments: Range[];
   blocks: Range[];
   durationMinutes: number;
-  /** Therapist constraints; null for admin. */
-  window: { from: Date; to: Date } | null;
+  /** Earliest allowed start (therapists: now); null for admin. */
+  notBefore: Date | null;
 };
 
 /** Returns every start instant (15-minute steps inside open segments) where a booking of the given duration fits. */
@@ -27,9 +27,6 @@ export function validStartTimes(input: SlotInput): Date[] {
 export function isStartValid(range: Range, input: SlotInput): boolean {
   if (!input.openSegments.some((seg) => containedIn(range, seg))) return false;
   if (input.blocks.some((b) => overlaps(range, b))) return false;
-  if (input.window) {
-    if (range.start < input.window.from) return false;
-    if (range.start > input.window.to) return false;
-  }
+  if (input.notBefore && range.start < input.notBefore) return false;
   return true;
 }

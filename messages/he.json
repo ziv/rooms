@@ -103,7 +103,7 @@
     "noSlots": "אין משבצות פנויות",
     "freeRange": "פנוי {range}",
     "slotLabel": "חדר {room}, {time}, פנוי",
-    "pastDay": "לא ניתן להזמין בתאריך זה",
+    "pastDay": "לא ניתן להזמין בתאריך שעבר",
     "legend": "מקרא"
   },
   "admin": {
@@ -151,7 +151,6 @@
       "title": "הגדרות מתחם",
       "name": "שם המתחם",
       "address": "כתובת",
-      "bookingWindowDays": "חלון הזמנה (ימים)",
       "cancellationCutoffMinutes": "חסימת שינוי לפני ההתחלה (דקות)",
       "status": "מצב",
       "active": "פעיל",
@@ -332,7 +331,6 @@
     "SLOT_TAKEN": "המשבצת כבר נתפסה",
     "OUTSIDE_OPENING_HOURS": "מחוץ לשעות הפעילות",
     "CLOSED": "החדר סגור בזמן זה",
-    "OUTSIDE_BOOKING_WINDOW": "מחוץ לחלון ההזמנה",
     "PAST_START": "לא ניתן להזמין בעבר",
     "INVALID_START_STEP": "שעת ההתחלה חייבת להיות ברבע שעה עגולה",
     "INVALID_LOCAL_TIME": "השעה אינה קיימת בתאריך זה",

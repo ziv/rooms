@@ -35,8 +35,8 @@ export type DayAvailability = {
   siteName: string;
   date: string;
   timezone: string;
-  /** Therapist constraints (ISO instants); null for admins. */
-  bookingWindow: { from: string; to: string } | null;
+  /** Earliest bookable instant (now) for therapists; null for admins, who may book in the past. */
+  bookableFrom: string | null;
   isAdmin: boolean;
   rooms: RoomAvailability[];
 };

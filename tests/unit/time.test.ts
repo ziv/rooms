@@ -72,18 +72,18 @@ describe("validStartTimes", () => {
       openSegments: [r("2026-01-01T08:00Z", "2026-01-01T10:00Z")],
       blocks: [r("2026-01-01T08:30Z", "2026-01-01T09:00Z")],
       durationMinutes: 60,
-      window: null,
+      notBefore: null,
     }).map((d) => d.toISOString().slice(11, 16));
     // 08:00 overlaps block; 08:15 overlaps; 08:30/08:45 overlap; 09:00 ok; 09:15+ would end after 10:00
     expect(starts).toEqual(["09:00"]);
   });
-  it("respects the booking window", () => {
+  it("excludes starts before notBefore (now)", () => {
     const starts = validStartTimes({
-      openSegments: [r("2026-01-01T08:00Z", "2026-01-01T12:00Z")],
+      openSegments: [r("2026-01-01T08:00Z", "2026-01-01T10:30Z")],
       blocks: [],
       durationMinutes: 60,
-      window: { from: new Date("2026-01-01T09:10Z"), to: new Date("2026-01-01T10:00Z") },
+      notBefore: new Date("2026-01-01T09:10Z"),
     }).map((d) => d.toISOString().slice(11, 16));
-    expect(starts).toEqual(["09:15", "09:30", "09:45", "10:00"]);
+    expect(starts).toEqual(["09:15", "09:30"]);
   });
 });

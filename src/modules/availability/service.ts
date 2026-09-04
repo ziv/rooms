@@ -114,9 +114,7 @@ export async function getDayAvailability(
     date: params.date,
     timezone: tz,
     isAdmin: admin,
-    bookingWindow: admin
-      ? null
-      : { from: now.toISOString(), to: new Date(now.getTime() + site.bookingWindowDays * 86_400_000).toISOString() },
+    bookableFrom: admin ? null : now.toISOString(),
     rooms: roomsOut,
   };
 }

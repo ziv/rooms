@@ -134,7 +134,7 @@ describe("availability DTO (AC-01, AC-02)", () => {
     expect(own).toMatchObject({ bookingId: mine.id });
     const closed = room.blocks.find((b) => b.kind === "CLOSED")!;
     expect("reason" in closed).toBe(false);
-    expect(forT1.bookingWindow).not.toBeNull();
+    expect(forT1.bookableFrom).not.toBeNull();
     expect(forT1.rooms[0].openSegments[0]).toEqual({
       start: at("08:00").toISOString(),
       end: at("21:00").toISOString(),
@@ -144,7 +144,7 @@ describe("availability DTO (AC-01, AC-02)", () => {
     const adminRoom = forAdmin.rooms.find((r) => r.roomId === room1.id)!;
     const booking = adminRoom.blocks.find((b) => b.kind === "BOOKING")!;
     expect(booking).toMatchObject({ user: { id: t2.id, fullName: "Therapist Two" } });
-    expect(forAdmin.bookingWindow).toBeNull();
+    expect(forAdmin.bookableFrom).toBeNull();
 
     // AC-02: no membership in another site
     const other = await makeSite("Other");
@@ -167,8 +167,9 @@ describe("createBooking rules", () => {
     await expect(create(a.t1, { startAt: addMinutes(new Date(), -120) })).rejects.toMatchObject({
       code: /PAST_START|INVALID_START_STEP|OUTSIDE_OPENING_HOURS/,
     });
-    await expect(create(a.t1, { startAt: localToUtc(futureDate(120), "10:00", TZ)! })).rejects.toMatchObject({
-      code: "OUTSIDE_BOOKING_WINDOW",
+    // no booking window: far-future dates are allowed for therapists
+    await expect(create(a.t1, { startAt: localToUtc(futureDate(300), "10:00", TZ)! })).resolves.toMatchObject({
+      status: "CONFIRMED",
     });
 
     // not a member

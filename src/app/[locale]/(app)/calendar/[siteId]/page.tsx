@@ -6,7 +6,7 @@ import { getDayAvailability } from "@/modules/availability/service";
 import { Shell } from "@/components/layout/shell";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import { DateNav } from "@/components/calendar/date-nav";
-import { addDays, dayBounds, todayLocal } from "@/lib/time";
+import { dayBounds, todayLocal } from "@/lib/time";
 import { isAdmin } from "@/modules/auth/actor";
 
 export default async function CalendarPage({
@@ -26,10 +26,8 @@ export default async function CalendarPage({
   const today = todayLocal(site.timezone);
   const admin = isAdmin(actor);
   const minDate = admin ? null : today;
-  const maxDate = admin ? null : addDays(today, site.bookingWindowDays);
   let date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : today;
   if (minDate && date < minDate) date = minDate;
-  if (maxDate && date > maxDate) date = maxDate;
 
   const day = await getDayAvailability(actor, { siteId, date });
   const t = await getTranslations("calendar");
@@ -46,7 +44,7 @@ export default async function CalendarPage({
           date={date}
           today={today}
           minDate={minDate}
-          maxDate={maxDate}
+          maxDate={null}
           basePath={`/${locale}/calendar/${siteId}`}
           label={label}
         />

@@ -66,7 +66,6 @@ describe("admin operations are forbidden for therapists", () => {
             siteId: site.id,
             name: "n",
             address: "a",
-            bookingWindowDays: 10,
             cancellationCutoffMinutes: 0,
             status: "ACTIVE",
           }),

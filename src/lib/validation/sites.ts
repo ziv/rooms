@@ -5,7 +5,6 @@ export const updateSiteSchema = z.object({
   siteId: uuid,
   name: z.string().trim().min(1).max(80),
   address: z.string().trim().min(1).max(200),
-  bookingWindowDays: z.number().int().min(1).max(365),
   cancellationCutoffMinutes: z
     .number()
     .int()

@@ -36,14 +36,12 @@ export function buildDayModel(day: DayAvailability, now: Date = new Date()): Day
   const gridEnd = new Date(Math.max(...segments.map((s) => s.end.getTime())));
   const slotCount = Math.round((gridEnd.getTime() - gridStart.getTime()) / 60_000 / MINUTES_PER_SLOT);
   const idxOf = (d: Date) => Math.round((d.getTime() - gridStart.getTime()) / 60_000 / MINUTES_PER_SLOT);
-  const window = day.bookingWindow
-    ? { from: new Date(day.bookingWindow.from), to: new Date(day.bookingWindow.to) }
-    : null;
+  const notBefore = day.bookableFrom ? new Date(day.bookableFrom) : null;
 
   const hourTicks: { idx: number; at: Date }[] = [];
   for (let i = 0; i < slotCount; i += 4) hourTicks.push({ idx: i, at: addMinutes(gridStart, i * MINUTES_PER_SLOT) });
 
-  const rooms = day.rooms.map((room) => buildRoom(room, gridStart, gridEnd, idxOf, window));
+  const rooms = day.rooms.map((room) => buildRoom(room, gridStart, gridEnd, idxOf, notBefore));
   return { gridStart, gridEnd, slotCount, hourTicks, rooms, closedAllDay: false };
 }
 
@@ -52,7 +50,7 @@ function buildRoom(
   gridStart: Date,
   gridEnd: Date,
   idxOf: (d: Date) => number,
-  window: SlotInput["window"],
+  notBefore: SlotInput["notBefore"],
 ): RoomModel {
   const openSegments = room.openSegments.map(toRange);
   const blocks: BlockModel[] = room.blocks.map((b) => ({
@@ -64,7 +62,7 @@ function buildRoom(
     openSegments,
     blocks: room.blocks.map(toRange),
     durationMinutes: REGULAR_BOOKING_MINUTES,
-    window,
+    notBefore,
   };
   const starts = validStartTimes(slotInput);
   const validStarts = new Set(starts.map(idxOf));
