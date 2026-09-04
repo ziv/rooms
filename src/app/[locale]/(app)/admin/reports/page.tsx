@@ -6,7 +6,8 @@ import { hoursSummary, bookingsDetail, type HoursSummary } from "@/modules/repor
 import { parseFilter, filterToQuery } from "./filters";
 import { ReportFilters } from "./report-filters";
 import { db, schema } from "@/lib/db";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
+import { notDeleted } from "@/modules/users/service";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
@@ -35,7 +36,7 @@ export default async function ReportsPage({
     db
       .select({ id: schema.users.id, name: schema.users.fullName, email: schema.users.email })
       .from(schema.users)
-      .where(eq(schema.users.status, "ACTIVE"))
+      .where(and(eq(schema.users.status, "ACTIVE"), notDeleted()))
       .orderBy(asc(schema.users.fullName)),
     hoursSummary(actor, filter),
     bookingsDetail(actor, filter, { limit: PAGE + 1, offset: (pageNo - 1) * PAGE }),

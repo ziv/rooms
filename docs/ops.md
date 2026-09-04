@@ -17,7 +17,7 @@ Production: https://www.keshet.space · Vercel project `rooms` · Supabase proje
 
 ## Deploy
 
-Push to `main` → Vercel builds and deploys automatically. Manual: `pnpm vercel --prod`.
+Push to `main` → Vercel builds and deploys automatically. This is the only way to deploy.
 
 Schema changes: run migrations **before** deploying code that needs them:
 

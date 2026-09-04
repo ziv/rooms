@@ -7,6 +7,7 @@ import type { Actor } from "@/modules/auth/actor";
 import { requireAdmin } from "@/modules/auth/guards";
 import type { DecideMembershipInput } from "@/lib/validation/memberships";
 import type { SiteMembership, MembershipStatus } from "@/lib/db/schema";
+import { notDeleted } from "@/modules/users/service";
 import { enqueue, enqueueForAdmins } from "@/modules/notifications/outbox";
 
 export async function listForUser(userId: string): Promise<SiteMembership[]> {
@@ -122,7 +123,7 @@ export async function listMemberships(
   filter: { siteId?: string; status?: MembershipStatus } = {},
 ): Promise<MembershipRow[]> {
   requireAdmin(actor);
-  const conds = [];
+  const conds = [notDeleted()];
   if (filter.siteId) conds.push(eq(schema.siteMemberships.siteId, filter.siteId));
   if (filter.status) conds.push(eq(schema.siteMemberships.status, filter.status));
   return db
@@ -140,7 +141,7 @@ export async function listMemberships(
     .from(schema.siteMemberships)
     .innerJoin(schema.sites, eq(schema.sites.id, schema.siteMemberships.siteId))
     .innerJoin(schema.users, eq(schema.users.id, schema.siteMemberships.userId))
-    .where(conds.length ? and(...conds) : undefined)
+    .where(and(...conds))
     .orderBy(asc(schema.siteMemberships.status), asc(schema.siteMemberships.requestedAt));
 }
 

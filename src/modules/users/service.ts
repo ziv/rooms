@@ -116,9 +116,13 @@ export async function getUser(id: string): Promise<User | undefined> {
 
 export type UserRow = User & { memberships: { siteId: string; siteName: string; status: string }[] };
 
+/** Deleted users are anonymized in place; they are hidden from every list. */
+export const notDeleted = () => sql`${schema.users.email} not like 'deleted+%@invalid'`;
+
 export async function listUsers(actor: Actor): Promise<UserRow[]> {
   requireAdmin(actor);
   const users = await db.query.users.findMany({
+    where: notDeleted(),
     orderBy: [asc(schema.users.globalRole), asc(schema.users.fullName), asc(schema.users.email)],
   });
   const rows = await db

@@ -125,3 +125,20 @@ describe("series edit / delete", () => {
     expect(await db.$count(schema.bookings, eq(schema.bookings.status, "CONFIRMED"))).toBe(1); // the past one
   });
 });
+
+describe("deleted users are hidden", () => {
+  it("listUsers and listMemberships exclude anonymized users", async () => {
+    const { listUsers } = await import("@/modules/users/service");
+    const { listMemberships } = await import("@/modules/memberships/service");
+    const site = await makeSite();
+    const room = await makeRoom(site.id);
+    const admin = await makeUser({ role: "SUPER_ADMIN" });
+    const gone = await makeUser({ email: "gone@test.local", fullName: "Gone" });
+    await makeMembership(site.id, gone.id);
+    await makeBooking({ siteId: site.id, roomId: room.id, userId: gone.id, startAt: new Date(Date.now() - 86400e3) });
+    await deleteUser(actorFor(admin), gone.id, auth());
+    expect((await listUsers(actorFor(admin))).map((u) => u.id)).not.toContain(gone.id);
+    expect((await listMemberships(actorFor(admin))).map((m) => m.userId)).not.toContain(gone.id);
+    expect((await listMemberships(actorFor(admin), { status: "SUSPENDED" })).map((m) => m.userId)).not.toContain(gone.id);
+  });
+});
