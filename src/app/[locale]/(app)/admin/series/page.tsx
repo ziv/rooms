@@ -30,6 +30,7 @@ export default async function SeriesListPage() {
               <TableHead>{t("site")}</TableHead>
               <TableHead>{t("room")}</TableHead>
               <TableHead>{t("weekday")}</TableHead>
+              <TableHead>{t("frequency")}</TableHead>
               <TableHead>{t("startTime")}</TableHead>
               <TableHead>{t("startsOn")}</TableHead>
               <TableHead>{t("endsOn")}</TableHead>
@@ -47,6 +48,7 @@ export default async function SeriesListPage() {
                 <TableCell>{s.siteName}</TableCell>
                 <TableCell>{s.roomNumber}</TableCell>
                 <TableCell>{tw(String(s.weekday))}</TableCell>
+                <TableCell>{t(s.intervalWeeks === 2 ? "everyTwoWeeks" : "everyWeek")}</TableCell>
                 <TableCell dir="ltr" className="text-start">
                   {s.startTime.slice(0, 5)}–{s.endTime.slice(0, 5)}
                 </TableCell>

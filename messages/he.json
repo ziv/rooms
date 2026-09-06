@@ -185,12 +185,15 @@
       "invalidRange": "שעת הסיום חייבת להיות אחרי ההתחלה"
     },
     "series": {
-      "title": "ססיות שבועיות",
+      "title": "ססיות קבועות",
       "new": "ססיה חדשה",
       "site": "מתחם",
       "room": "חדר",
       "therapist": "מטפל/ת",
       "weekday": "יום בשבוע",
+      "frequency": "תדירות",
+      "everyWeek": "כל שבוע",
+      "everyTwoWeeks": "אחת לשבועיים",
       "startTime": "שעת התחלה",
       "endTime": "שעת סיום",
       "startsOn": "מתאריך",

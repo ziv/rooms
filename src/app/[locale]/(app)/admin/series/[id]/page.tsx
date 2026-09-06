@@ -56,6 +56,7 @@ export default async function SeriesPage({
           userId: series.userId,
           userName: series.userName ?? series.userEmail,
           weekday: series.weekday,
+          intervalWeeks: series.intervalWeeks,
           startTime: series.startTime.slice(0, 5),
           endTime: series.endTime.slice(0, 5),
           startsOn: series.startsOn,

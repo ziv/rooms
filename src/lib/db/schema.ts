@@ -160,6 +160,8 @@ export const recurrenceSeries = pgTable(
       .notNull()
       .references(() => users.id),
     weekday: smallint("weekday").notNull(),
+    /** 1 = every week, 2 = every other week (phase anchored on `startsOn`). */
+    intervalWeeks: smallint("interval_weeks").notNull().default(1),
     startTime: time("start_time").notNull(),
     endTime: time("end_time").notNull(),
     startsOn: date("starts_on").notNull(),
@@ -176,6 +178,7 @@ export const recurrenceSeries = pgTable(
   },
   (t) => [
     check("series_weekday_check", sql`${t.weekday} between 0 and 6`),
+    check("series_interval_check", sql`${t.intervalWeeks} in (1, 2)`),
     check("series_time_check", sql`${t.startTime} < ${t.endTime}`),
     check("series_dates_check", sql`${t.endsOn} >= ${t.startsOn} and ${t.endsOn} <= ${t.startsOn} + 3653`),
     index("series_site_status").on(t.siteId, t.status),

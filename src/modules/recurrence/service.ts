@@ -20,7 +20,7 @@ import {
   todayLocal,
   type Range,
 } from "@/lib/time";
-import { expandSeries, MAX_SERIES_DAYS } from "./expand";
+import { expandSeries, firstOccurrenceOnOrAfter, MAX_SERIES_DAYS } from "./expand";
 import type {
   CancelSeriesInput,
   CreateSeriesInput,
@@ -58,7 +58,8 @@ async function validateSeriesInput(tx: Tx, input: SeriesInput): Promise<Site> {
   const minutes = timeToMinutes(input.endTime) - timeToMinutes(input.startTime);
   if (minutes < 60) throw validation({ duration: "at least 1 hour" });
   if (input.endsOn < input.startsOn) throw validation({ endsOn: "before startsOn" });
-  if (addDays(input.startsOn, MAX_SERIES_DAYS) < input.endsOn) throw validation({ endsOn: `max ${MAX_SERIES_DAYS} days` });
+  if (addDays(input.startsOn, MAX_SERIES_DAYS) < input.endsOn)
+    throw validation({ endsOn: `max ${MAX_SERIES_DAYS} days` });
   return site;
 }
 
@@ -157,6 +158,7 @@ async function insertSeriesWithOccurrences(
       roomId: input.roomId,
       userId: input.userId,
       weekday: input.weekday,
+      intervalWeeks: input.intervalWeeks,
       startTime: input.startTime,
       endTime: input.endTime,
       startsOn: input.startsOn,
@@ -253,12 +255,25 @@ export async function splitSeries(
       roomId: input.changes.roomId ?? old.roomId,
       userId: input.changes.userId ?? old.userId,
       weekday: input.changes.weekday ?? old.weekday,
+      intervalWeeks: input.changes.intervalWeeks ?? intervalOf(old),
       startTime: input.changes.startTime ?? old.startTime.slice(0, 5),
       endTime: input.changes.endTime ?? old.endTime.slice(0, 5),
       startsOn: input.fromDate,
       endsOn: input.changes.endsOn ?? old.endsOn,
       note: input.changes.note === undefined ? old.note : input.changes.note,
     };
+    // A biweekly series keeps its phase across the split: the new series starts on the first
+    // occurrence of the old cadence on/after `fromDate` rather than on `fromDate` itself
+    // (same rule the split dialog previews with `anchorOn`).
+    if (newInput.intervalWeeks === 2 && intervalOf(old) === 2) {
+      const aligned = firstOccurrenceOnOrAfter({
+        weekday: newInput.weekday,
+        intervalWeeks: 2,
+        anchorOn: old.startsOn,
+        from: input.fromDate,
+      });
+      if (aligned <= newInput.endsOn) newInput.startsOn = aligned;
+    }
     await validateSeriesInput(tx, newInput);
     await lockRooms(tx, [old.roomId, newInput.roomId]);
 
@@ -461,10 +476,13 @@ async function listSeriesById(id: string): Promise<SeriesRow[]> {
   }));
 }
 
+const intervalOf = (s: RecurrenceSeries): 1 | 2 => (s.intervalWeeks === 2 ? 2 : 1);
+
 const seriesSummary = (s: RecurrenceSeries) => ({
   roomId: s.roomId,
   userId: s.userId,
   weekday: s.weekday,
+  intervalWeeks: s.intervalWeeks,
   startTime: s.startTime,
   endTime: s.endTime,
   startsOn: s.startsOn,
@@ -479,6 +497,7 @@ const seriesPayload = (s: RecurrenceSeries, site: Site) => ({
   timezone: site.timezone,
   roomId: s.roomId,
   weekday: s.weekday,
+  intervalWeeks: s.intervalWeeks,
   startTime: s.startTime.slice(0, 5),
   endTime: s.endTime.slice(0, 5),
   startsOn: s.startsOn,
@@ -528,7 +547,13 @@ export async function updateSeries(
         ),
       );
 
-    const preview = await computePreview(tx, site, { ...input, startsOn: regenFrom, excludeSeriesId: old.id });
+    // `anchorOn` keeps the phase of a biweekly series fixed on its startsOn while regenerating from today.
+    const preview = await computePreview(tx, site, {
+      ...input,
+      startsOn: regenFrom,
+      anchorOn: input.startsOn,
+      excludeSeriesId: old.id,
+    });
     if (preview.conflictCount > 0 && !input.skipConflicts)
       throw new AppError("CONFLICTS", "Series has conflicts", preview);
 
@@ -538,6 +563,7 @@ export async function updateSeries(
         roomId: input.roomId,
         userId: input.userId,
         weekday: input.weekday,
+        intervalWeeks: input.intervalWeeks,
         startTime: input.startTime,
         endTime: input.endTime,
         startsOn: input.startsOn,

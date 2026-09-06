@@ -49,20 +49,20 @@ const L = {
       cta: "ליומן",
     },
     SERIES_CREATED: {
-      subject: "ססיה שבועית נקבעה עבורך",
-      title: "ססיה שבועית נקבעה",
-      body: "נקבעה לך ססיה שבועית: יום {weekday}, {startTime}–{endTime}, מ-{startsOn} עד {endsOn}. נוצרו {created} מופעים. {skippedText}",
+      subject: "ססיה {freq} נקבעה עבורך",
+      title: "ססיה {freq} נקבעה",
+      body: "נקבעה לך ססיה {freq}: יום {weekday}, {startTime}–{endTime}, מ-{startsOn} עד {endsOn}. נוצרו {created} מופעים. {skippedText}",
       cta: "להזמנות שלי",
     },
     SERIES_CHANGED: {
-      subject: "הססיה השבועית שלך שונתה",
-      title: "הססיה השבועית שלך שונתה",
-      body: "מתאריך {fromDate}: יום {weekday}, {startTime}–{endTime}, עד {endsOn}. נוצרו {created} מופעים. {skippedText}",
+      subject: "הססיה ה{freq} שלך שונתה",
+      title: "הססיה ה{freq} שלך שונתה",
+      body: "מתאריך {fromDate}: {freqEvery} ביום {weekday}, {startTime}–{endTime}, עד {endsOn}. נוצרו {created} מופעים. {skippedText}",
       cta: "להזמנות שלי",
     },
     SERIES_CANCELLED: {
-      subject: "הססיה השבועית שלך בוטלה",
-      title: "הססיה השבועית שלך בוטלה",
+      subject: "הססיה ה{freq} שלך בוטלה",
+      title: "הססיה ה{freq} שלך בוטלה",
       body: "הססיה ביום {weekday} {startTime}–{endTime} בוטלה. {reason}",
       cta: "ליומן",
     },
@@ -86,6 +86,8 @@ const L = {
     reason: "סיבה: {reason}",
     skipped: "מופעים שדולגו עקב התנגשות: {dates}.",
     weekdays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
+    freq: { 1: "שבועית", 2: "דו-שבועית" },
+    freqEvery: { 1: "כל שבוע", 2: "אחת לשבועיים" },
   },
   en: {
     dir: "ltr",
@@ -132,20 +134,20 @@ const L = {
       cta: "Open calendar",
     },
     SERIES_CREATED: {
-      subject: "A weekly series was set for you",
-      title: "Weekly series created",
-      body: "A weekly series was set for you: {weekday}, {startTime}–{endTime}, from {startsOn} to {endsOn}. {created} occurrences were created. {skippedText}",
+      subject: "A {freq} series was set for you",
+      title: "{Freq} series created",
+      body: "A {freq} series was set for you: {weekday}, {startTime}–{endTime}, from {startsOn} to {endsOn}. {created} occurrences were created. {skippedText}",
       cta: "My bookings",
     },
     SERIES_CHANGED: {
-      subject: "Your weekly series was changed",
-      title: "Your weekly series was changed",
-      body: "From {fromDate}: {weekday}, {startTime}–{endTime}, until {endsOn}. {created} occurrences were created. {skippedText}",
+      subject: "Your {freq} series was changed",
+      title: "Your {freq} series was changed",
+      body: "From {fromDate}: {freqEvery} on {weekday}, {startTime}–{endTime}, until {endsOn}. {created} occurrences were created. {skippedText}",
       cta: "My bookings",
     },
     SERIES_CANCELLED: {
-      subject: "Your weekly series was cancelled",
-      title: "Your weekly series was cancelled",
+      subject: "Your {freq} series was cancelled",
+      title: "Your {freq} series was cancelled",
       body: "The series on {weekday} {startTime}–{endTime} was cancelled. {reason}",
       cta: "Open calendar",
     },
@@ -175,6 +177,8 @@ const L = {
     reason: "Reason: {reason}",
     skipped: "Occurrences skipped due to conflicts: {dates}.",
     weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    freq: { 1: "weekly", 2: "biweekly" },
+    freqEvery: { 1: "every week", 2: "every 2 weeks" },
   },
 } as const;
 
@@ -206,6 +210,7 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
   const l = L[lang];
   const tpl = l[type];
   const tz = typeof payload.timezone === "string" ? payload.timezone : "Asia/Jerusalem";
+  const interval: 1 | 2 = payload.intervalWeeks === 2 ? 2 : 1;
   const vars: Record<string, unknown> = {
     ...payload,
     status:
@@ -213,6 +218,9 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
         ? ((l.status as Record<string, string>)[payload.status] ?? payload.status)
         : "",
     weekday: typeof payload.weekday === "number" ? l.weekdays[payload.weekday] : "",
+    freq: l.freq[interval],
+    Freq: l.freq[interval].charAt(0).toUpperCase() + l.freq[interval].slice(1),
+    freqEvery: l.freqEvery[interval],
     reason: payload.reason ? fill(l.reason, { reason: payload.reason }) : "",
     skippedText:
       Array.isArray(payload.skipped) && payload.skipped.length
@@ -220,6 +228,8 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
         : "",
   };
   const body = fill(tpl.body, vars);
+  const title = fill(tpl.title, vars);
+  const subject = fill(tpl.subject, vars);
   const hasBooking = typeof payload.startAt === "string" && typeof payload.roomNumber !== "undefined";
   const link =
     type === "USER_INVITED" || type === "ROLE_CHANGED"
@@ -244,7 +254,7 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
       : [];
 
   const text = [
-    tpl.title,
+    title,
     "",
     body,
     ...detailRows.map(([k, v]) => `${k}: ${v}`),
@@ -255,7 +265,7 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
   ].join("\n");
   const html = `<!doctype html><html lang="${lang}" dir="${l.dir}"><body style="font-family:system-ui,Arial,sans-serif;background:#f6f6f6;padding:24px;direction:${l.dir}">
 <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:12px;padding:24px;border:1px solid #e5e5e5">
-<h2 style="margin:0 0 12px;font-size:20px">${esc(tpl.title)}</h2>
+<h2 style="margin:0 0 12px;font-size:20px">${esc(title)}</h2>
 <p style="margin:0 0 16px;line-height:1.5">${esc(body)}</p>
 ${detailRows.length ? `<table style="border-collapse:collapse;margin:0 0 16px">${detailRows.map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#666">${esc(k)}</td><td style="padding:4px 0"><bdi>${esc(v)}</bdi></td></tr>`).join("")}</table>` : ""}
 <p><a href="${esc(link)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px">${esc(tpl.cta)}</a></p>
@@ -271,5 +281,5 @@ ${detailRows.length ? `<table style="border-collapse:collapse;margin:0 0 16px">$
       "BOOKING_CANCELLED_BY_ADMIN",
       "BOOKING_CANCELLED_BY_CLOSURE",
     ].includes(type);
-  return { subject: tpl.subject, html, text, icsBookingId: attachIcs ? (payload.bookingId as string) : undefined };
+  return { subject, html, text, icsBookingId: attachIcs ? (payload.bookingId as string) : undefined };
 }

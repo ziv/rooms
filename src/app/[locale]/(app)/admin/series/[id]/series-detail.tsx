@@ -41,6 +41,7 @@ export type SeriesView = {
   userId: string;
   userName: string | null;
   weekday: number;
+  intervalWeeks: number;
   startTime: string;
   endTime: string;
   startsOn: string;
@@ -108,7 +109,7 @@ export function SeriesDetail({ series, rooms, members, today, locale, defaultFro
         </CardHeader>
         <CardContent className="text-sm space-y-1">
           <div>
-            {tw(String(series.weekday))} ·{" "}
+            {tw(String(series.weekday))} · {t(series.intervalWeeks === 2 ? "everyTwoWeeks" : "everyWeek")} ·{" "}
             <span dir="ltr">
               {series.startTime}–{series.endTime}
             </span>
@@ -239,6 +240,7 @@ function SplitDialog({
     roomId: series.roomId,
     userId: series.userId,
     weekday: String(series.weekday),
+    intervalWeeks: String(series.intervalWeeks),
     startTime: series.startTime,
     endTime: series.endTime,
     endsOn: series.endsOn,
@@ -252,6 +254,7 @@ function SplitDialog({
     roomId: form.roomId,
     userId: form.userId,
     weekday: Number(form.weekday),
+    intervalWeeks: Number(form.intervalWeeks) === 2 ? (2 as const) : (1 as const),
     startTime: form.startTime,
     endTime: form.endTime,
     endsOn: form.endsOn,
@@ -265,6 +268,8 @@ function SplitDialog({
           startsOn: form.fromDate,
           note: series.note,
           excludeSeriesId: series.id,
+          // keep the biweekly phase of the old series (see splitSeries)
+          anchorOn: series.intervalWeeks === 2 && form.intervalWeeks === "2" ? series.startsOn : undefined,
         }),
       { onSuccess: setPreview },
     );
@@ -342,6 +347,16 @@ function SplitDialog({
               [0, 1, 2, 3, 4, 5, 6].map((d) => ({ value: String(d), label: tw(String(d)) })),
               (v) => set({ weekday: v }),
             )}
+            {sel(
+              "sfrequency",
+              t("frequency"),
+              form.intervalWeeks,
+              [
+                { value: "1", label: t("everyWeek") },
+                { value: "2", label: t("everyTwoWeeks") },
+              ],
+              (v) => set({ intervalWeeks: v }),
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="sst">{t("startTime")}</Label>
@@ -406,6 +421,7 @@ function EditDialog({ series, rooms, members, locale, onClose }: Props & { onClo
     roomId: series.roomId,
     userId: series.userId,
     weekday: String(series.weekday),
+    intervalWeeks: String(series.intervalWeeks),
     startTime: series.startTime,
     endTime: series.endTime,
     startsOn: series.startsOn,
@@ -422,6 +438,7 @@ function EditDialog({ series, rooms, members, locale, onClose }: Props & { onClo
     roomId: form.roomId,
     userId: form.userId,
     weekday: Number(form.weekday),
+    intervalWeeks: Number(form.intervalWeeks) === 2 ? (2 as const) : (1 as const),
     startTime: form.startTime,
     endTime: form.endTime,
     startsOn: form.startsOn,
@@ -493,6 +510,16 @@ function EditDialog({ series, rooms, members, locale, onClose }: Props & { onClo
               form.weekday,
               [0, 1, 2, 3, 4, 5, 6].map((d) => ({ value: String(d), label: tw(String(d)) })),
               (v) => set({ weekday: v }),
+            )}
+            {sel(
+              "efrequency",
+              t("frequency"),
+              form.intervalWeeks,
+              [
+                { value: "1", label: t("everyWeek") },
+                { value: "2", label: t("everyTwoWeeks") },
+              ],
+              (v) => set({ intervalWeeks: v }),
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

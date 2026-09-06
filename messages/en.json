@@ -185,12 +185,15 @@
       "invalidRange": "End must be after start"
     },
     "series": {
-      "title": "Weekly series",
+      "title": "Recurring series",
       "new": "New series",
       "site": "Site",
       "room": "Room",
       "therapist": "Therapist",
       "weekday": "Weekday",
+      "frequency": "Frequency",
+      "everyWeek": "Every week",
+      "everyTwoWeeks": "Every 2 weeks",
       "startTime": "Start time",
       "endTime": "End time",
       "startsOn": "From date",

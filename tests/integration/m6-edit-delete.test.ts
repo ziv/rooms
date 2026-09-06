@@ -62,7 +62,7 @@ describe("user edit / status / delete", () => {
     const past = await makeBooking({ siteId: site.id, roomId: room.id, userId: busy.id, startAt: new Date(Date.now() - 5 * 86400e3) });
     const future = await makeBooking({ siteId: site.id, roomId: room.id, userId: busy.id, startAt: localToUtc(futureDate(5), "10:00", TZ)! });
     const startsOn = futureDate(7);
-    const { series } = await createSeries(actorFor(admin), { siteId: site.id, roomId: room.id, userId: busy.id, weekday: new Date(startsOn + "T12:00:00Z").getUTCDay(), startTime: "12:00", endTime: "14:00", startsOn, endsOn: addDays(startsOn, 21), note: null, skipConflicts: false });
+    const { series } = await createSeries(actorFor(admin), { siteId: site.id, roomId: room.id, userId: busy.id, weekday: new Date(startsOn + "T12:00:00Z").getUTCDay(), intervalWeeks: 1 as const, startTime: "12:00", endTime: "14:00", startsOn, endsOn: addDays(startsOn, 21), note: null, skipConflicts: false });
     const r2 = await deleteUser(actorFor(admin), busy.id, a);
     expect(r2.mode).toBe("ANONYMIZED");
     expect(r2.cancelledBookings).toBe(5); // 1 regular + 4 occurrences
@@ -87,9 +87,24 @@ describe("series edit / delete", () => {
     await makeMembership(site.id, t1.id);
     const startsOn = futureDate(7);
     const weekday = new Date(startsOn + "T12:00:00Z").getUTCDay();
-    const base = { siteId: site.id, roomId: room1.id, userId: t1.id, weekday, startTime: "09:00", endTime: "12:00", startsOn, endsOn: addDays(startsOn, 35), note: null };
+    const base = { siteId: site.id, roomId: room1.id, userId: t1.id, weekday, intervalWeeks: 1 as const, startTime: "09:00", endTime: "12:00", startsOn, endsOn: addDays(startsOn, 35), note: null };
     return { site, room1, room2, admin, t1, base, startsOn };
   }
+
+  it("keeps the phase of a biweekly series when editing it", async () => {
+    const { admin, base, startsOn } = await setup();
+    const a = actorFor(admin);
+    const biweekly = { ...base, intervalWeeks: 2 as const };
+    const { series } = await createSeries(a, { ...biweekly, skipConflicts: false });
+    const r = await updateSeries(a, { ...biweekly, seriesId: series.id, startTime: "14:00", endTime: "16:00", skipConflicts: false });
+    expect(r.deleted).toBe(3);
+    expect(r.created).toBe(3);
+    const after = await getSeries(a, series.id);
+    expect(after.intervalWeeks).toBe(2);
+    expect(after.occurrences.map((o) => o.startAt.toISOString())).toEqual(
+      [0, 14, 28].map((d) => localToUtc(addDays(startsOn, d), "14:00", TZ)!.toISOString()),
+    );
+  });
 
   it("updates an active series in place, regenerating future occurrences", async () => {
     const { admin, room2, base } = await setup();

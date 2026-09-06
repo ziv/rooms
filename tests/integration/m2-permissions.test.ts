@@ -44,6 +44,7 @@ describe("admin operations are forbidden for therapists", () => {
       roomId: room.id,
       userId: therapist.id,
       weekday: 1,
+      intervalWeeks: 1 as const,
       startTime: "09:00",
       endTime: "12:00",
       startsOn: futureDate(7),

@@ -35,6 +35,7 @@ export function SeriesForm({ sites, locale }: { sites: SiteOption[]; locale: str
     roomId: site?.rooms[0]?.id ?? "",
     userId: "",
     weekday: "0",
+    intervalWeeks: "1",
     startTime: "09:00",
     endTime: "12:00",
     startsOn: "",
@@ -48,6 +49,7 @@ export function SeriesForm({ sites, locale }: { sites: SiteOption[]; locale: str
     roomId: form.roomId,
     userId: form.userId,
     weekday: Number(form.weekday),
+    intervalWeeks: Number(form.intervalWeeks) === 2 ? (2 as const) : (1 as const),
     startTime: form.startTime,
     endTime: form.endTime,
     startsOn: form.startsOn,
@@ -131,6 +133,16 @@ export function SeriesForm({ sites, locale }: { sites: SiteOption[]; locale: str
               form.weekday,
               [0, 1, 2, 3, 4, 5, 6].map((d) => ({ value: String(d), label: tw(String(d)) })),
               (v) => set({ weekday: v }),
+            )}
+            {sel(
+              "frequency",
+              t("frequency"),
+              form.intervalWeeks,
+              [
+                { value: "1", label: t("everyWeek") },
+                { value: "2", label: t("everyTwoWeeks") },
+              ],
+              (v) => set({ intervalWeeks: v }),
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

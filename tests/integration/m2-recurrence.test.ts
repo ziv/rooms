@@ -39,6 +39,7 @@ async function setup() {
     roomId: room1.id,
     userId: t1.id,
     weekday,
+    intervalWeeks: 1 as const,
     startTime: "09:00",
     endTime: "12:00",
     startsOn,
@@ -69,7 +70,11 @@ describe("series", () => {
 
   it("creates a 5-year series (about 261 occurrences)", async () => {
     const { a, base } = await setup();
-    const { created } = await createSeries(a.admin, { ...base, endsOn: addDays(base.startsOn, 5 * 365), skipConflicts: false });
+    const { created } = await createSeries(a.admin, {
+      ...base,
+      endsOn: addDays(base.startsOn, 5 * 365),
+      skipConflicts: false,
+    });
     expect(created).toBeGreaterThanOrEqual(260);
   });
 
@@ -77,7 +82,9 @@ describe("series", () => {
     const { a, base, t2 } = await setup();
     await expect(previewSeries(a.admin, { ...base, endTime: "09:30" })).rejects.toMatchObject({ code: "VALIDATION" });
     // no maximum: a series may cover the whole opening day (here 08:00–21:00)
-    await expect(previewSeries(a.admin, { ...base, startTime: "08:00", endTime: "21:00" })).resolves.toMatchObject({ conflictCount: 0 });
+    await expect(previewSeries(a.admin, { ...base, startTime: "08:00", endTime: "21:00" })).resolves.toMatchObject({
+      conflictCount: 0,
+    });
     await expect(previewSeries(a.admin, { ...base, startTime: "09:10" })).rejects.toMatchObject({
       code: "INVALID_START_STEP",
     });
@@ -162,6 +169,33 @@ describe("series", () => {
     expect(audit[0].before).toMatchObject({ deletedOccurrences: 5 });
     // cancelled bookings report is not polluted: no CANCELLED rows created by the split
     expect(await db.$count(schema.bookings, eq(schema.bookings.status, "CANCELLED"))).toBe(0);
+  });
+
+  it("biweekly series creates every other week and keeps its phase across a split", async () => {
+    const { a, base, room2, startsOn } = await setup();
+    const biweekly = { ...base, intervalWeeks: 2 as const };
+    const preview = await previewSeries(a.admin, biweekly);
+    expect(preview.occurrences.map((o) => o.date)).toEqual([0, 14, 28, 42].map((d) => addDays(startsOn, d)));
+    const { series, created } = await createSeries(a.admin, { ...biweekly, skipConflicts: false });
+    expect(created).toBe(4);
+    expect(series.intervalWeeks).toBe(2);
+
+    // Split from an "off" week: the new series must start on the next on-cadence date, not the next weekday.
+    const fromDate = addDays(startsOn, 21);
+    const result = await splitSeries(a.admin, {
+      seriesId: series.id,
+      fromDate,
+      changes: { roomId: room2.id },
+      skipConflicts: false,
+    });
+    expect(result.deleted).toBe(2);
+    expect(result.created).toBe(2);
+    const neu = await getSeries(a.admin, result.newSeries.id);
+    expect(neu.intervalWeeks).toBe(2);
+    expect(neu.startsOn).toBe(addDays(startsOn, 28));
+    expect(neu.occurrences.map((o) => o.startAt.toISOString())).toEqual(
+      [28, 42].map((d) => localToUtc(addDays(startsOn, d), "09:00", TZ)!.toISOString()),
+    );
   });
 
   it("cancelSeries cancels future occurrences and keeps the past", async () => {

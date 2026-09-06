@@ -36,6 +36,13 @@
       "when": 1788526372213,
       "tag": "0004_series_ten_years",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788690500507,
+      "tag": "0005_series_interval",
+      "breakpoints": true
     }
   ]
 }

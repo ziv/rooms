@@ -1,0 +1,2 @@
+ALTER TABLE "recurrence_series" ADD COLUMN "interval_weeks" smallint DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "recurrence_series" ADD CONSTRAINT "series_interval_check" CHECK ("recurrence_series"."interval_weeks" in (1, 2));
