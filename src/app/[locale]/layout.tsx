@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing, dirFor } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/sonner";
 import { Pwa } from "@/components/layout/pwa";
+import { NavigationPendingProvider } from "@/components/layout/navigation-pending";
 
 export const metadata: Metadata = {
   title: { default: "Rooms", template: "%s · Rooms" },
@@ -32,7 +33,7 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dirFor(locale)} className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <NextIntlClientProvider>
-          {children}
+          <NavigationPendingProvider>{children}</NavigationPendingProvider>
           <Pwa />
           <Toaster position={dirFor(locale) === "rtl" ? "top-left" : "top-right"} richColors />
         </NextIntlClientProvider>
