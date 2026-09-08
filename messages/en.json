@@ -104,7 +104,10 @@
     "freeRange": "Free {range}",
     "slotLabel": "Room {room}, {time}, free",
     "pastDay": "Past dates cannot be booked",
-    "legend": "Legend"
+    "legend": "Legend",
+    "view": "View",
+    "viewByRoom": "By room",
+    "viewAllRooms": "All rooms"
   },
   "admin": {
     "dashboard": {

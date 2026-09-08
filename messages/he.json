@@ -104,7 +104,10 @@
     "freeRange": "פנוי {range}",
     "slotLabel": "חדר {room}, {time}, פנוי",
     "pastDay": "לא ניתן להזמין בתאריך שעבר",
-    "legend": "מקרא"
+    "legend": "מקרא",
+    "view": "תצוגה",
+    "viewByRoom": "לפי חדר",
+    "viewAllRooms": "כל החדרים"
   },
   "admin": {
     "dashboard": {

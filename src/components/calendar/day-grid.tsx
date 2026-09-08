@@ -9,10 +9,16 @@ import { useSiteFormat } from "./format";
 
 const SLOT_PX = 12;
 
-type Props = { model: DayModel; timezone: string; onSelect: (s: SlotSelection) => void };
+type Props = {
+  model: DayModel;
+  timezone: string;
+  onSelect: (s: SlotSelection) => void;
+  /** Fit every room into the viewport width (mobile all-rooms view): narrow columns, one-line blocks. */
+  dense?: boolean;
+};
 
 /** Desktop day view: rooms as columns, 15-minute rows. Free cells are real buttons. */
-export function DayGrid({ model, timezone, onSelect }: Props) {
+export function DayGrid({ model, timezone, onSelect, dense = false }: Props) {
   const t = useTranslations("calendar");
   const fmt = useSiteFormat(timezone);
   const rows = model.slotCount;
@@ -20,10 +26,12 @@ export function DayGrid({ model, timezone, onSelect }: Props) {
   return (
     <div className="overflow-x-auto">
       <div
-        className="grid border rounded-lg bg-card min-w-[640px]"
+        className={`grid border rounded-lg bg-card ${dense ? "" : "min-w-[640px]"}`}
         style={{
-          gridTemplateColumns: `4rem repeat(${model.rooms.length}, minmax(9rem, 1fr))`,
-          gridTemplateRows: `2.5rem repeat(${rows}, ${SLOT_PX}px)`,
+          gridTemplateColumns: dense
+            ? `2.5rem repeat(${model.rooms.length}, minmax(0, 1fr))`
+            : `4rem repeat(${model.rooms.length}, minmax(9rem, 1fr))`,
+          gridTemplateRows: `${dense ? "2rem" : "2.5rem"} repeat(${rows}, ${SLOT_PX}px)`,
         }}
         role="grid"
         aria-label={t("title")}
@@ -33,10 +41,10 @@ export function DayGrid({ model, timezone, onSelect }: Props) {
         {model.rooms.map((r) => (
           <div
             key={r.roomId}
-            className="sticky top-0 z-10 bg-card border-b border-s px-2 flex items-center font-medium text-sm"
+            className={`sticky top-0 z-10 bg-card border-b border-s flex items-center font-medium ${dense ? "px-1 text-xs truncate" : "px-2 text-sm"}`}
             role="columnheader"
           >
-            {t("room")} {r.roomNumber}
+            {dense ? r.roomNumber : `${t("room")} ${r.roomNumber}`}
           </div>
         ))}
 
@@ -44,7 +52,7 @@ export function DayGrid({ model, timezone, onSelect }: Props) {
         {model.hourTicks.map((tick) => (
           <div
             key={tick.idx}
-            className="text-xs text-muted-foreground pe-2 text-end border-t -mt-px"
+            className={`text-muted-foreground text-end border-t -mt-px ${dense ? "text-[10px] pe-1" : "text-xs pe-2"}`}
             style={{ gridColumn: 1, gridRow: `${tick.idx + 2} / span 4` }}
           >
             {fmt.time(tick.at)}
@@ -76,10 +84,10 @@ export function DayGrid({ model, timezone, onSelect }: Props) {
               b.endIdx > b.startIdx ? (
                 <div
                   key={`${b.kind}-${j}`}
-                  className={`m-px rounded border px-1.5 py-0.5 overflow-hidden ${blockClass[b.kind]}`}
+                  className={`m-px rounded border overflow-hidden ${dense ? "px-0.5" : "px-1.5 py-0.5"} ${blockClass[b.kind]}`}
                   style={{ gridColumn: col + 2, gridRow: `${b.startIdx + 2} / ${b.endIdx + 2}`, zIndex: 1 }}
                 >
-                  <BlockContent block={b} timezone={timezone} compact={b.endIdx - b.startIdx < 4} />
+                  <BlockContent block={b} timezone={timezone} compact={b.endIdx - b.startIdx < 4} dense={dense} />
                 </div>
               ) : null,
             )}

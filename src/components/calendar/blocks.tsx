@@ -10,15 +10,39 @@ export function BlockContent({
   block,
   timezone,
   compact = false,
+  dense = false,
 }: {
   block: BlockModel;
   timezone: string;
+  /** Hide the time range on busy/closed blocks (short blocks in the grid). */
   compact?: boolean;
+  /** One truncated line, icon + name only (mobile all-rooms grid). */
+  dense?: boolean;
 }) {
   const t = useTranslations("calendar");
   const tb = useTranslations("booking");
   const fmt = useSiteFormat(timezone);
   const time = fmt.range(block.start, block.end);
+  if (dense) {
+    const label =
+      block.kind === "BUSY"
+        ? `⛔ ${t("busy")}`
+        : block.kind === "CLOSED"
+          ? `🚫 ${block.reason ?? t("closed")}`
+          : block.kind === "MINE"
+            ? `★ ${t("mine")}`
+            : `👤 ${block.user.fullName ?? tb("therapist")}`;
+    const cls = "block text-[10px] leading-tight truncate";
+    return block.kind === "MINE" || block.kind === "BOOKING" ? (
+      <Link href={`/bookings/${block.bookingId}`} className={cls} title={`${label} · ${time}`}>
+        {label}
+      </Link>
+    ) : (
+      <span className={`${cls} text-muted-foreground`} title={`${label} · ${time}`}>
+        {label}
+      </span>
+    );
+  }
   switch (block.kind) {
     case "BUSY":
       return (
