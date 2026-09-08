@@ -81,6 +81,6 @@ export function BlockContent({
 export const blockClass: Record<BlockModel["kind"], string> = {
   BUSY: "bg-muted border-border bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(0,0,0,0.05)_6px,rgba(0,0,0,0.05)_12px)]",
   CLOSED: "bg-muted/60 border-dashed border-border",
-  MINE: "bg-primary/10 border-primary/40",
-  BOOKING: "bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-900",
+  MINE: "bg-secondary border-primary/40",
+  BOOKING: "bg-accent border-accent-foreground/20",
 };

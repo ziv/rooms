@@ -7,7 +7,6 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
   return (
     <main className="mx-auto max-w-2xl p-6 space-y-4">
       <h1 className="text-2xl font-semibold">{t("termsTitle")}</h1>
-      <p className="text-sm text-muted-foreground">{t("draftNotice")}</p>
       {locale === "he" ? (
         <div className="space-y-3 text-sm leading-6">
           <p>
