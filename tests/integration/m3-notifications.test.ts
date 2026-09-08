@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { localToUtc } from "@/lib/time";
-import { createBooking } from "@/modules/bookings/service";
+import { cancelBooking, createBooking, moveBooking } from "@/modules/bookings/service";
 import { decideMembership, requestMembership } from "@/modules/memberships/service";
 import { flushNotifications, MAX_ATTEMPTS, type Mailer } from "@/modules/notifications/sender";
 import { renderEmail } from "@/modules/notifications/templates";
@@ -84,6 +84,73 @@ describe("notifications", () => {
     expect(toTherapist.text).toContain("approved");
   });
 
+  it("therapist booking actions notify every active manager; admin actions do not", async () => {
+    const site = await makeSite();
+    await makeOpeningHours(site.id);
+    const room1 = await makeRoom(site.id, "1", 0);
+    const room2 = await makeRoom(site.id, "2", 1);
+    const admin1 = await makeUser({ email: "a1@test.local", role: "SUPER_ADMIN", fullName: "A1" });
+    const admin2 = await makeUser({ email: "a2@test.local", role: "SUPER_ADMIN", fullName: "A2" });
+    await db.update(schema.users).set({ preferredLocale: "en" }).where(eq(schema.users.id, admin2.id));
+    const t1 = await makeUser({ email: "t1@test.local", fullName: "T1" });
+    await makeMembership(site.id, t1.id);
+    const therapist = actorFor(t1, [{ siteId: site.id, status: "APPROVED" }]);
+    const adminNotes = (type: string) =>
+      db.query.notifications.findMany({ where: eq(schema.notifications.type, type) });
+
+    const booking = await createBooking(therapist, {
+      id: randomUUID(),
+      siteId: site.id,
+      roomId: room1.id,
+      startAt: localToUtc(futureDate(5), "10:00", TZ)!,
+      note: null,
+    });
+    const created = await adminNotes("BOOKING_CREATED_BY_THERAPIST");
+    expect(created.map((n) => n.userId).sort()).toEqual([admin1.id, admin2.id].sort());
+    expect(created.find((n) => n.userId === admin2.id)?.locale).toBe("en");
+    expect(created[0].payload).toMatchObject({ userName: "T1", roomNumber: "1", bookingId: booking.id });
+
+    await moveBooking(therapist, {
+      bookingId: booking.id,
+      roomId: room2.id,
+      startAt: localToUtc(futureDate(5), "12:00", TZ)!,
+    });
+    const moved = await adminNotes("BOOKING_MOVED_BY_THERAPIST");
+    expect(moved).toHaveLength(2);
+    expect(moved[0].payload).toMatchObject({ roomNumber: "2", previous: { roomNumber: "1" } });
+    const rendered = renderEmail(
+      "BOOKING_MOVED_BY_THERAPIST",
+      "en",
+      moved[0].payload as Record<string, unknown>,
+      "https://x",
+    );
+    expect(rendered.subject).toBe("Booking changed: T1");
+    expect(rendered.text).toContain("Previously:");
+    expect(rendered.text).toContain("room 1");
+
+    await cancelBooking(therapist, { bookingId: booking.id, reason: "sick" });
+    const cancelled = await adminNotes("BOOKING_CANCELLED_BY_THERAPIST");
+    expect(cancelled).toHaveLength(2);
+    expect(
+      renderEmail("BOOKING_CANCELLED_BY_THERAPIST", "he", cancelled[0].payload as Record<string, unknown>, "https://x")
+        .text,
+    ).toContain("סיבה: sick");
+
+    // An admin booking for themselves is not a therapist action: no manager email.
+    await makeMembership(site.id, admin1.id);
+    const adminActor = actorFor(admin1, [{ siteId: site.id, status: "APPROVED" }]);
+    const own = await createBooking(adminActor, {
+      id: randomUUID(),
+      siteId: site.id,
+      roomId: room1.id,
+      startAt: localToUtc(futureDate(6), "10:00", TZ)!,
+      note: null,
+    });
+    await cancelBooking(adminActor, { bookingId: own.id });
+    expect(await adminNotes("BOOKING_CREATED_BY_THERAPIST")).toHaveLength(2);
+    expect(await adminNotes("BOOKING_CANCELLED_BY_THERAPIST")).toHaveLength(2);
+  });
+
   it("templates render every type without throwing", () => {
     const payload = {
       siteName: "S",
@@ -105,6 +172,7 @@ describe("notifications", () => {
       userName: "U",
       userEmail: "u@x",
       fromDate: "2026-10-01",
+      previous: { startAt: "2026-09-09T07:00:00.000Z", endAt: "2026-09-09T08:00:00.000Z", roomNumber: "2" },
     };
     for (const type of [
       "MEMBERSHIP_REQUESTED",
@@ -117,6 +185,9 @@ describe("notifications", () => {
       "SERIES_CHANGED",
       "SERIES_CANCELLED",
       "OCCURRENCE_CANCELLED_BY_THERAPIST",
+      "BOOKING_CREATED_BY_THERAPIST",
+      "BOOKING_MOVED_BY_THERAPIST",
+      "BOOKING_CANCELLED_BY_THERAPIST",
     ] as const) {
       for (const locale of ["he", "en"]) {
         const r = renderEmail(type, locale, payload, "https://x");

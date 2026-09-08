@@ -72,6 +72,24 @@ const L = {
       body: "{userName} ביטל/ה את המופע הבא:",
       cta: "לפרטי ההזמנה",
     },
+    BOOKING_CREATED_BY_THERAPIST: {
+      subject: "הזמנה חדשה: {userName}",
+      title: "מטפל/ת הזמין/ה חדר",
+      body: "{userName} הזמין/ה חדר. פרטי ההזמנה:",
+      cta: "לפרטי ההזמנה",
+    },
+    BOOKING_MOVED_BY_THERAPIST: {
+      subject: "הזמנה שונתה: {userName}",
+      title: "מטפל/ת שינה/תה הזמנה",
+      body: "{userName} שינה/תה את ההזמנה. {previousText} הפרטים החדשים:",
+      cta: "לפרטי ההזמנה",
+    },
+    BOOKING_CANCELLED_BY_THERAPIST: {
+      subject: "הזמנה בוטלה: {userName}",
+      title: "מטפל/ת ביטל/ה הזמנה",
+      body: "{userName} ביטל/ה את ההזמנה הבאה. {reason}",
+      cta: "לפרטי ההזמנה",
+    },
     USER_INVITED: {
       subject: "נפתח לך חשבון במערכת תיאום החדרים",
       title: "נפתח לך חשבון",
@@ -84,6 +102,7 @@ const L = {
     sitesText: " ואושר/ה במתחמים: {sites}",
     status: { APPROVED: "מאושר", REJECTED: "נדחה", SUSPENDED: "מושעה", PENDING: "ממתין" },
     reason: "סיבה: {reason}",
+    previous: "המועד הקודם: {date}, {time}, חדר {room}.",
     skipped: "מופעים שדולגו עקב התנגשות: {dates}.",
     weekdays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
     freq: { 1: "שבועית", 2: "דו-שבועית" },
@@ -157,6 +176,24 @@ const L = {
       body: "{userName} cancelled the following occurrence:",
       cta: "Open booking",
     },
+    BOOKING_CREATED_BY_THERAPIST: {
+      subject: "New booking: {userName}",
+      title: "A therapist booked a room",
+      body: "{userName} booked a room. Booking details:",
+      cta: "Open booking",
+    },
+    BOOKING_MOVED_BY_THERAPIST: {
+      subject: "Booking changed: {userName}",
+      title: "A therapist changed a booking",
+      body: "{userName} changed their booking. {previousText} New details:",
+      cta: "Open booking",
+    },
+    BOOKING_CANCELLED_BY_THERAPIST: {
+      subject: "Booking cancelled: {userName}",
+      title: "A therapist cancelled a booking",
+      body: "{userName} cancelled the following booking. {reason}",
+      cta: "Open booking",
+    },
     USER_INVITED: {
       subject: "An account was created for you",
       title: "An account was created for you",
@@ -175,6 +212,7 @@ const L = {
     sitesText: " and approved at: {sites}",
     status: { APPROVED: "approved", REJECTED: "rejected", SUSPENDED: "suspended", PENDING: "pending" },
     reason: "Reason: {reason}",
+    previous: "Previously: {date}, {time}, room {room}.",
     skipped: "Occurrences skipped due to conflicts: {dates}.",
     weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
     freq: { 1: "weekly", 2: "biweekly" },
@@ -211,6 +249,10 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
   const tpl = l[type];
   const tz = typeof payload.timezone === "string" ? payload.timezone : "Asia/Jerusalem";
   const interval: 1 | 2 = payload.intervalWeeks === 2 ? 2 : 1;
+  const previous =
+    payload.previous && typeof payload.previous === "object"
+      ? (payload.previous as { startAt?: unknown; endAt?: unknown; roomNumber?: unknown })
+      : null;
   const vars: Record<string, unknown> = {
     ...payload,
     status:
@@ -222,6 +264,13 @@ export function renderEmail(type: NotificationType, locale: string, payload: Pay
     Freq: l.freq[interval].charAt(0).toUpperCase() + l.freq[interval].slice(1),
     freqEvery: l.freqEvery[interval],
     reason: payload.reason ? fill(l.reason, { reason: payload.reason }) : "",
+    previousText: previous
+      ? fill(l.previous, {
+          date: fmtDate(previous.startAt, tz, lang),
+          time: `${fmtTime(previous.startAt, tz)}–${fmtTime(previous.endAt, tz)}`,
+          room: previous.roomNumber ?? "",
+        })
+      : "",
     skippedText:
       Array.isArray(payload.skipped) && payload.skipped.length
         ? fill(l.skipped, { dates: (payload.skipped as string[]).join(", ") })

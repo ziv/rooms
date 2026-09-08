@@ -108,6 +108,13 @@ export async function createBooking(actor: Actor, input: CreateBookingInput): Pr
         payload: bookingPayload(booking, site, room.roomNumber, { byAdmin: targetUserId !== actor.userId }),
       });
     }
+    // Managers are told about every booking a therapist makes on their own.
+    if (!isAdmin(actor))
+      await enqueueForAdmins(tx, "BOOKING_CREATED_BY_THERAPIST", {
+        ...bookingPayload(booking, site, room.roomNumber),
+        userName: actor.fullName,
+        userId: actor.userId,
+      });
     return booking;
   });
 }
@@ -188,6 +195,22 @@ export async function moveBooking(actor: Actor, input: MoveBookingInput): Promis
           },
         });
       }
+    } else if (!isAdmin(actor)) {
+      const previousRoom =
+        locked.roomId === room.id
+          ? room
+          : await tx.query.rooms.findFirst({ where: eq(schema.rooms.id, locked.roomId) });
+      await enqueueForAdmins(tx, "BOOKING_MOVED_BY_THERAPIST", {
+        ...bookingPayload(updated, site, room.roomNumber),
+        userName: actor.fullName,
+        userId: actor.userId,
+        previous: {
+          startAt: locked.startAt.toISOString(),
+          endAt: locked.endAt.toISOString(),
+          roomId: locked.roomId,
+          roomNumber: previousRoom?.roomNumber ?? "?",
+        },
+      });
     }
     return updated;
   });
@@ -251,6 +274,13 @@ export async function cancelBooking(actor: Actor, input: CancelBookingInput): Pr
         ...bookingPayload(updated, site, roomNumber),
         userName: actor.fullName,
         userId: actor.userId,
+      });
+    } else if (!isAdmin(actor)) {
+      await enqueueForAdmins(tx, "BOOKING_CANCELLED_BY_THERAPIST", {
+        ...bookingPayload(updated, site, roomNumber),
+        userName: actor.fullName,
+        userId: actor.userId,
+        reason: input.reason ?? null,
       });
     }
     return updated;

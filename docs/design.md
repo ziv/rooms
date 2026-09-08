@@ -736,7 +736,7 @@ flush(limit = 20): לוקח שורות PENDING/FAILED עם attempts < 5, לפי 
 
 React Email ב-`modules/notifications/templates/`, תבנית לכל `type`, עם `locale` ו-`dir`. תוכן: כותרת, מתחם, חדר, תאריך ושעות מקומיות, סוג השינוי, קישור לפרטי ההזמנה. אירועי הזמנה מצרפים קובץ ICS.
 
-סוגים: `MEMBERSHIP_REQUESTED` (למנהל), `MEMBERSHIP_DECIDED`, `BOOKING_CREATED`, `BOOKING_CHANGED_BY_ADMIN`, `BOOKING_CANCELLED_BY_ADMIN`, `BOOKING_CANCELLED_BY_CLOSURE`, `SERIES_CREATED`, `SERIES_CHANGED`, `SERIES_CANCELLED`, `OCCURRENCE_CANCELLED_BY_THERAPIST` (למנהל).
+סוגים: `MEMBERSHIP_REQUESTED` (למנהל), `MEMBERSHIP_DECIDED`, `BOOKING_CREATED`, `BOOKING_CHANGED_BY_ADMIN`, `BOOKING_CANCELLED_BY_ADMIN`, `BOOKING_CANCELLED_BY_CLOSURE`, `SERIES_CREATED`, `SERIES_CHANGED`, `SERIES_CANCELLED`, `OCCURRENCE_CANCELLED_BY_THERAPIST` (למנהל), `BOOKING_CREATED_BY_THERAPIST`, `BOOKING_MOVED_BY_THERAPIST`, `BOOKING_CANCELLED_BY_THERAPIST` (למנהלים: כל פעולה עצמית של מטפל/ת על הזמנה).
 
 ## 11. ICS
 
