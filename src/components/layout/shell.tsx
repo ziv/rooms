@@ -3,6 +3,8 @@ import { Link } from "@/i18n/navigation";
 import type { Actor } from "@/modules/auth/actor";
 import { isAdmin } from "@/modules/auth/actor";
 import type { Site } from "@/lib/db/schema";
+import { LogoMark } from "@/components/brand/flowers";
+import { NavLink } from "./nav-link";
 import { SiteSwitcher } from "./site-switcher";
 import { UserMenu } from "./user-menu";
 
@@ -11,36 +13,44 @@ type Props = { actor: Actor; sites: Site[]; currentSiteId?: string; children: Re
 export async function Shell({ actor, sites, currentSiteId, children }: Props) {
   const t = await getTranslations("nav");
   const admin = isAdmin(actor);
+  const adminLinks: [string, string][] = [
+    ["/admin/dashboard", t("dashboard")],
+    ["/admin/members", t("members")],
+    ["/admin/users", t("users")],
+    ["/admin/rooms", t("rooms")],
+    ["/admin/hours", t("hours")],
+    ["/admin/closures", t("closures")],
+    ["/admin/series", t("series")],
+    ["/admin/reports", t("reports")],
+    ["/admin/audit", t("audit")],
+    ["/admin/settings", t("settings")],
+  ];
   return (
     <div className="flex-1 flex flex-col">
-      <header className="border-b bg-card">
-        <div className="mx-auto max-w-6xl px-4 h-14 flex items-center gap-4">
-          <Link href="/calendar" className="font-semibold whitespace-nowrap">
-            Rooms
+      <header className="sticky top-0 z-30 overflow-x-clip border-b border-border/70 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/70">
+        <div className="mx-auto max-w-6xl px-4 h-14 flex items-center gap-3">
+          <Link href="/calendar" className="flex items-center gap-2 font-semibold whitespace-nowrap tracking-tight">
+            <LogoMark />
+            <span>Rooms</span>
           </Link>
           {sites.length > 1 && <SiteSwitcher sites={sites} currentSiteId={currentSiteId} />}
-          <nav className="hidden md:flex items-center gap-4 text-sm ms-auto">
-            <Link href="/calendar">{t("calendar")}</Link>
-            <Link href="/bookings">{t("myBookings")}</Link>
-            {admin && <Link href="/admin/dashboard">{t("admin")}</Link>}
+          <nav className="hidden md:flex items-center gap-1 ms-auto">
+            <NavLink href="/calendar">{t("calendar")}</NavLink>
+            <NavLink href="/bookings">{t("myBookings")}</NavLink>
+            {admin && <NavLink href="/admin">{t("admin")}</NavLink>}
           </nav>
           <div className={sites.length > 1 ? "" : "ms-auto"}>
             <UserMenu actor={actor} admin={admin} />
           </div>
         </div>
         {admin && (
-          <div className="border-t bg-muted/40">
-            <div className="mx-auto max-w-6xl px-4 h-10 flex items-center gap-4 text-sm overflow-x-auto">
-              <Link href="/admin/dashboard">{t("dashboard")}</Link>
-              <Link href="/admin/members">{t("members")}</Link>
-              <Link href="/admin/users">{t("users")}</Link>
-              <Link href="/admin/rooms">{t("rooms")}</Link>
-              <Link href="/admin/hours">{t("hours")}</Link>
-              <Link href="/admin/closures">{t("closures")}</Link>
-              <Link href="/admin/series">{t("series")}</Link>
-              <Link href="/admin/reports">{t("reports")}</Link>
-              <Link href="/admin/audit">{t("audit")}</Link>
-              <Link href="/admin/settings">{t("settings")}</Link>
+          <div className="border-t border-border/60 bg-muted/40">
+            <div className="mx-auto max-w-6xl px-2 h-11 flex items-center gap-1 overflow-x-auto [scrollbar-width:none]">
+              {adminLinks.map(([href, label]) => (
+                <NavLink key={href} href={href} className="text-[0.8rem] py-1">
+                  {label}
+                </NavLink>
+              ))}
             </div>
           </div>
         )}

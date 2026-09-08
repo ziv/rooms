@@ -48,7 +48,9 @@
     "invalidEmail": "Invalid email address",
     "invalidCode": "The code is wrong or has expired",
     "error": "Sign-in failed. Please try again.",
-    "legal": "By signing in you accept the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>."
+    "legal": "By signing in you accept the <terms>Terms of Use</terms> and <privacy>Privacy Policy</privacy>.",
+    "tagline": "A calm place to plan your therapy room time.",
+    "hint": "Sign in with Google or get a one-time code by email."
   },
   "onboarding": {
     "profileTitle": "Welcome",
