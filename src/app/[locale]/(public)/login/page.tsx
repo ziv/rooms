@@ -24,16 +24,17 @@ export default async function LoginPage({
     <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
       <div className="w-full max-w-4xl grid overflow-hidden rounded-3xl bg-card shadow-xl shadow-foreground/5 ring-1 ring-border lg:grid-cols-[1.1fr_1fr]">
         {/* Illustration panel */}
-        <section className="relative flex flex-col justify-between gap-6 p-8 bg-[linear-gradient(160deg,var(--secondary),var(--accent))] lg:p-10">
-          <div className="flex items-center gap-2 font-semibold tracking-tight">
-            <LogoMark className="size-8" />
-            <span>Rooms</span>
-          </div>
+        <section className="relative flex flex-col justify-between gap-6 p-8 lg:p-10 bg-[#fefbf2]">
+          {/*<div className="flex items-center gap-2 font-semibold tracking-tight">*/}
+          {/*  <LogoMark className="size-8" />*/}
+          {/*  <span>Rooms</span>*/}
+          {/*</div>*/}
           <div className="space-y-2 max-w-sm">
-            <h2 className="text-2xl font-semibold leading-snug lg:text-3xl">{t("tagline")}</h2>
-            <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+            <h2 className="text-2xl font-semibold leading-snug lg:text-2xl text-[#43432d]">{t("tagline")}</h2>
+            <p className="text-md text-muted-foreground">{t("subtitle")}</p>
           </div>
-          <Flowers className="max-w-md self-center lg:self-start -mb-4 lg:-mb-6 drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)]" />
+          <img src="/rooms.png"/>
+          {/*<Flowers className="max-w-md self-center lg:self-start -mb-4 lg:-mb-6 drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)]" />*/}
         </section>
 
         {/* Form panel */}
