@@ -30,8 +30,7 @@ export async function Shell({ actor, sites, currentSiteId, children }: Props) {
       <header className="sticky top-0 z-30 overflow-x-clip border-b border-border/70 bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/70">
         <div className="mx-auto max-w-6xl px-4 h-14 flex items-center gap-3">
           <Link href="/calendar" className="flex items-center gap-2 font-semibold whitespace-nowrap tracking-tight">
-            <LogoMark />
-            <span>Rooms</span>
+            <img src="/flower.png" style={{ height: "40px" }} />
           </Link>
           {sites.length > 1 && <SiteSwitcher sites={sites} currentSiteId={currentSiteId} />}
           <nav className="hidden md:flex items-center gap-1 ms-auto">

@@ -30,7 +30,9 @@ export default async function LoginPage({
           {/*  <span>Rooms</span>*/}
           {/*</div>*/}
           <div className="space-y-2 max-w-sm">
-            <h2 className="text-2xl font-semibold leading-snug lg:text-2xl text-[#43432d]">{t("tagline")}</h2>
+            <h2 className="flex flex-row text-2xl font-semibold leading-snug lg:text-2xl text-[#43432d]">{t("tagline")}
+            <img src="/flower.png" style={{ height: "40px" }} />
+            </h2>
             <p className="text-md text-muted-foreground">{t("subtitle")}</p>
           </div>
           <img src="/rooms.png"/>
